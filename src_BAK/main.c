@@ -10,13 +10,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "main.h"
+#include "main.h"getconf
 
-#include "intersection.h"
 #include "config.h"
-#include "lightSet.h"
-
-uint64_t get_time_millis(void);
+#include "lights.h"
 
 /*****************************************************************************
  ** @brief main function
@@ -45,9 +42,9 @@ int main ()
 }
 
 
-uint64_t get_time_millis(void) 
+uint64_t get_time_millis() 
 {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);    //monotonic so it's not affected by time changes
-    return (((uint64_t)(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+    return (uint64_t)(ts.tv_sec) * 1000 + (ts.tv_nsec / 1000000);
 }
