@@ -10,7 +10,6 @@
 #define _LIGHTSET_H_
 
 #include "main.h"
-#include "light.h"
 
 #define MAX_LIGHTS_IN_SET       5
 #define MAX_STEPS_IN_PATTERN    10
@@ -32,6 +31,29 @@ typedef enum lightsetstate
     LSS_off,         //all lights red with no time restrictions
     LSS_unused       //unused step in a pattern
 } lightSetState_t;
+
+typedef enum lightstate
+{
+    LS_green = 0,
+    LS_yellowArrow,
+    LS_yellow,
+    LS_red,
+    LS_numStates
+} lightState_t;
+
+typedef enum lightdisplaytype
+{
+    LDT_unused = 0,         //unused light in set
+    LDT_solid,              //Normal, solid green light
+    LDT_arrow,              //green light is an arrow
+    LDT_numTypes            //last item in list; number of valid options
+} lightDisplayType_t;
+
+typedef struct light
+{
+    lightDisplayType_t type;
+    lightState_t state;
+} light_t;
 
 typedef struct lightsetstep
 {

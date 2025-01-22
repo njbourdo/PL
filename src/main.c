@@ -7,14 +7,11 @@
  ****************************************************************************************/
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdlib.h>
 #include <time.h>
 
 #include "main.h"
 
 #include "intersection.h"
-#include "config.h"
-#include "lightSet.h"
 
 uint64_t get_time_millis(void);
 
@@ -47,7 +44,6 @@ int main (int argc, char *argv[])
     {
         currentMillis = get_time_millis();
         INT_stateMachine(currentMillis);
-        //usleep?
     }
 
     return 1;

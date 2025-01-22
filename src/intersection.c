@@ -6,12 +6,11 @@
  *
  ****************************************************************************************/
 
-#include <stdlib.h>
-
 #include "main.h"
 #include "intersection.h"
 #include "config.h"
 #include "lightSet.h"
+#include "display.h"
 
 static intState_t intState = IS_off;        //currently active directions of the intersection
 
@@ -40,7 +39,7 @@ void INT_stateMachine(uint64_t millis)
             break;
     }
     
-    CFG_printLightStates();
+    DISP_printLightStates();
     
 }
 

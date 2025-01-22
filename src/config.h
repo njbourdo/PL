@@ -11,7 +11,6 @@
 
 #include "main.h"
 #include "lightSet.h"
-#include "light.h"
 
 
 #define INT_DIRECTIONS          4   //number of intersection directions (i.e. max number of light sets)
@@ -74,10 +73,9 @@ typedef enum
 } intDirection_t;
 
 
-//TODO: support error codes
 void CFG_init(char* filepath);
+void CFG_loadDefaults(void);
 lightSet_t* CFG_getLightSet(intDirection_t direction);
-void CFG_printLightStates(void);
 
 
 #endif //_CONFIG_H

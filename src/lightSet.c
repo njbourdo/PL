@@ -8,7 +8,6 @@
  
 #include "main.h"
 #include "lightSet.h"
-#include "light.h"
 
 //static lightSet_t* lightSets[ACTIVE_SETS];  //pointers to active light sets
 static lightSet_t* lightSet1 = NULL;
