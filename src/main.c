@@ -26,13 +26,22 @@ uint64_t get_time_millis(void);
  **
  ** @return 1
 ******************************************************************************/
-int main ()
+int main (int argc, char *argv[])
 {
+    char* filepath = NULL;
     uint64_t currentMillis = 0;     //current milliseconds since epoch
     
-    printf("Hello world!\n");
+    if(argc >= 2)
+    {
+        filepath = argv[1];
+        printf("Using %s\n", filepath);
+    }
+    else
+    {
+        printf("Using default configuration\n");
+    }
     
-    INT_init();
+    INT_init(filepath);
     
     while(1)
     {

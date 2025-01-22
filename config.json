@@ -1,0 +1,124 @@
+{
+    "Intersection" : [
+        {
+            "Direction" : "north",
+            "Lights" : [ "<" , "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LPSR",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LUSR",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LUSG",
+                    "Time" : 4000
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 5000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 6000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 7000
+                }
+            ]
+        },
+        {
+            "Direction" : "south",
+            "Lights" : [ "<" , "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LPSR",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LUSR",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LUSG",
+                    "Time" : 4000
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 5000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 6000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 7000
+                }
+            ]
+        },
+        {
+            "Direction" : "east",
+            "Lights" : [ "<" , "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LPSR",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LUSR",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LUSG",
+                    "Time" : 4000
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 5000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 6000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 7000
+                }
+            ]
+        },
+        {
+            "Direction" : "west",
+            "Lights" : [ "<" , "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LPSR",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LUSR",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LUSG",
+                    "Time" : 4000
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 5000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 6000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 7000
+                }
+            ]
+        }
+    ]
+}

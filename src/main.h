@@ -16,7 +16,12 @@
 #define STATIC  static
 
 
-
+typedef enum error
+{
+    ERR_success = 0,
+    ERR_file,
+    ERR_json,
+} error_t;
 
 
 

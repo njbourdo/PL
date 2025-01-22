@@ -40,17 +40,42 @@
 
 #define DEFAULT_CONFIG          {DEFAULT_LIGHT_SET_N, DEFAULT_LIGHT_SET_E, DEFAULT_LIGHT_SET_S, DEFAULT_LIGHT_SET_W}
 
+#define CFG_DIR_STR_NORTH       "north"
+#define CFG_DIR_STR_EAST        "east"
+#define CFG_DIR_STR_WEST        "west"
+#define CFG_DIR_STR_SOUTH       "south"
+
+#define CFG_LIGHT_TYPE_SOLID1   'o'
+#define CFG_LIGHT_TYPE_SOLID2   'O'
+#define CFG_LIGHT_TYPE_SOLID3   '0'
+#define CFG_LIGHT_TYPE_ARROW    '<'
+
+#define CFG_STEP_STATE_LPSG     "LPSG"
+#define CFG_STEP_STATE_LPSY     "LPSY"
+#define CFG_STEP_STATE_LPSR     "LPSR"
+#define CFG_STEP_STATE_LUSG     "LUSG"
+#define CFG_STEP_STATE_LUSY     "LUSY"
+#define CFG_STEP_STATE_LUSR     "LUSR"
+#define CFG_STEP_STATE_LYSG     "LYSG"
+#define CFG_STEP_STATE_LYSY     "LYSY"
+#define CFG_STEP_STATE_LYSR     "LYSR"
+#define CFG_STEP_STATE_LRSG     "LRSG"
+#define CFG_STEP_STATE_LRSY     "LRSY"
+#define CFG_STEP_STATE_LRSR     "LRSR"
+#define CFG_STEP_STATE_off      "end"
+
 typedef enum
 {
     ID_north = 0,
     ID_east,
     ID_south,
-    ID_west
+    ID_west,
+    ID_numDirections    //last item in list; number of valid options
 } intDirection_t;
 
 
 //TODO: support error codes
-void CFG_init(void);
+void CFG_init(char* filepath);
 lightSet_t* CFG_getLightSet(intDirection_t direction);
 void CFG_printLightStates(void);
 

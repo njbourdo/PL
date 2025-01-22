@@ -24,7 +24,7 @@ typedef enum
 
 
 
-void INT_init(void);
+void INT_init(char* filepath);
 void INT_stateMachine(uint64_t millis);
 
 

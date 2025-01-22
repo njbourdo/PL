@@ -7,9 +7,10 @@ Assumptions:
 * Only supporting 4-way intersections
 * No support for crosswalk buttons
 * No dependencies on nearby intersections
+* No support for emergency vehicle signals
 * Flashing red lights on power-loss is implemented in traffic light hardware
-* support variable schedules??
-* support ambulance signals??
+* Included libraries (cJSON, CMocka) are validated by their developers and will not be included in the tests for this application
+
 
 To run:
 * ./setup.sh

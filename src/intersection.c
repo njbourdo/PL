@@ -5,7 +5,9 @@
  * @brief   
  *
  ****************************************************************************************/
- 
+
+#include <stdlib.h>
+
 #include "main.h"
 #include "intersection.h"
 #include "config.h"
@@ -16,9 +18,9 @@ static intState_t intState = IS_off;        //currently active directions of the
 static void toggleActiveDirection(uint64_t millis);
 static void changeActiveDirection(intState_t state, uint64_t millis);
 
-void INT_init(void)
+void INT_init(char* filepath)
 {
-    CFG_init();
+    CFG_init(filepath);
 }
 
 
