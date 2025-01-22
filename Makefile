@@ -3,6 +3,7 @@ BINARY := njtraffic
 
 # directories
 BINDIR := bin
+LIBDIR := lib
 SRCDIR := src
 TESTDIR := test
 
@@ -15,8 +16,11 @@ STD := -std=c18
 # warnings
 WARNS := -Wall -Wextra -pedantic
 
+#includes
+INCS := -I$(SRCDIR) -I$(LIBDIR)
+
 # flags
-CFLAGS := -O3 $(STD) $(WARNS)
+CFLAGS := -O3 $(STD) $(WARNS) $(INCS)
 
 # cmocka
 CMOCKA := -l cmocka -L /usr/lib
@@ -25,7 +29,7 @@ CMOCKA := -l cmocka -L /usr/lib
 TEST_BINARY := $(BINARY)_test_runner
 
 # c files
-FILES := $(wildcard $(SRCDIR)/*.c)
+FILES := $(wildcard $(SRCDIR)/*.c) $(wildcard $(LIBDIR)/*/*.c)
 
 ### Make Options ###
 
