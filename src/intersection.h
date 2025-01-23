@@ -25,7 +25,7 @@ typedef enum
 
 
 void INT_init(char* filepath);
-void INT_stateMachine(uint64_t millis);
+void INT_stateMachine(void);
 
 
 #endif //_INTERSECTION_H_

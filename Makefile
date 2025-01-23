@@ -29,7 +29,9 @@ CMOCKA := -l cmocka -L /usr/lib
 TEST_BINARY := $(BINARY)_test_runner
 
 # c files
-FILES := $(wildcard $(SRCDIR)/*.c) $(wildcard $(LIBDIR)/*/*.c)
+MAIN_FILES := $(SRCDIR)/main.*
+APP_FILES := $(filter-out $(SRCDIR)/main.c, $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*/*.c)
+TEST_FILES := $(wildcard $(TESTDIR)/*.c)
 
 ### Make Options ###
 
@@ -46,12 +48,12 @@ help:
 
 # Build normal binary
 all:
-	$(CC) -o $(BINDIR)/$(BINARY) $(FILES) $(CFLAGS)
+	$(CC) -o $(BINDIR)/$(BINARY) $(MAIN_FILES) $(APP_FILES) $(CFLAGS)
 	@echo "Binary file : $(BINDIR)/$(BINARY)";
 
 # Build and run test binary
 tests:
-	$(CC) $(TESTDIR)/main.c -o $(BINDIR)/$(TEST_BINARY) $(CFLAGS) $(CMOCKA)
+	$(CC) -o $(BINDIR)/$(TEST_BINARY) $(TEST_FILES) $(APP_FILES) $(CFLAGS) $(CMOCKA) -DTESTING
 	@echo "Running tests: ";
 	./$(BINDIR)/$(TEST_BINARY)
 

@@ -5,12 +5,13 @@
  * @brief   
  *
  ****************************************************************************************/
- 
+  /*
 #include "main.h"
 #include "lightSet.h"
 
-STATIC lightSet_t* lightSet1 = NULL;
-STATIC lightSet_t* lightSet2 = NULL;
+//static lightSet_t* lightSets[ACTIVE_SETS];  //pointers to active light sets
+static lightSet_t* lightSet1 = NULL;
+static lightSet_t* lightSet2 = NULL;
 
 
 static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis);
@@ -18,13 +19,6 @@ static lightSetState_t incrementLightSetStep(lightSet_t* set);
 static lightState_t getArrowState(lightSetState_t setState);
 static lightState_t getSolidGreenState(lightSetState_t setState);
 
-void SET_init(void)
-{
-    /*for(uint8_t i = 0; i < ACTIVE_SETS; i++)
-    {
-        lightSets[i] = NULL;
-    }*/
-}
 
 void SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
 {
@@ -43,6 +37,11 @@ void SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
     lightSet2->cycleStartTime = startTime;
     
     
+}
+
+void LIGHT_turnAllOff(void)
+{
+    //start transition to all reds if necessary, otherwise transition to LS_off
 }
 
 lightSetState_t SET_stateMachine(uint64_t millis)
@@ -197,5 +196,5 @@ static lightState_t getSolidGreenState(lightSetState_t setState)
     }
     
     return solidGreenState;
-}
+}*/
 

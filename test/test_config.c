@@ -5,7 +5,7 @@
  * @brief   
  *
  ****************************************************************************************/
-
+/*
 #include <strings.h>
 #include <stdlib.h>
 
@@ -14,7 +14,7 @@
 #include "cJSON/cJSON.h"
 
 
-STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
+static lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
 
 error_t parseConfig(const char* json);
 error_t parseDirection(const cJSON* direction);
@@ -166,7 +166,7 @@ error_t parseDirection(const cJSON* direction)
     steps = cJSON_GetObjectItem(direction, "steps");
     
     //parse steps
-    result = parseSteps(&lightConfigs[directionIdx], steps);
+    result = parseLights(&lightConfigs[directionIdx], steps);
     if(result != ERR_success)
     {
         return result;
@@ -192,7 +192,7 @@ error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
         }
         if(!cJSON_IsString(light))
         {
-            printf("Light %u type value not a string!\n", lightIdx);
+            printf("Light type value not a string!\n");
             return ERR_format;
         }
         
@@ -276,19 +276,19 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
 
 intDirection_t getDirectionIdxFromString(char* dir)
 {
-    if(!strcasecmp(CFG_DIR_STR_NORTH, dir))
+    if(strcasecmp(CFG_DIR_STR_NORTH, dir))
     {
         return ID_north;
     }
-    else if(!strcasecmp(CFG_DIR_STR_EAST, dir))
+    else if(strcasecmp(CFG_DIR_STR_EAST, dir))
     {
         return ID_east;
     }
-    else if(!strcasecmp(CFG_DIR_STR_SOUTH, dir))
+    else if(strcasecmp(CFG_DIR_STR_SOUTH, dir))
     {
         return ID_south;
     }
-    else if(!strcasecmp(CFG_DIR_STR_WEST, dir))
+    else if(strcasecmp(CFG_DIR_STR_WEST, dir))
     {
         return ID_west;
     }
@@ -314,58 +314,58 @@ lightDisplayType_t getLightTypeFromString(char* type)
 
 lightSetState_t getStepStateFromString(char* state)
 {
-    if(!strcasecmp(CFG_STEP_STATE_LPSG, state))
+    if(strcasecmp(CFG_STEP_STATE_LPSG, state))
     {
         return LSS_LPSG;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LPSY, state))
+    else if(strcasecmp(CFG_STEP_STATE_LPSY, state))
     {
         return LSS_LPSY;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LPSR, state))
+    else if(strcasecmp(CFG_STEP_STATE_LPSR, state))
     {
         return LSS_LPSR;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LUSG, state))
+    else if(strcasecmp(CFG_STEP_STATE_LUSG, state))
     {
         return LSS_LUSG;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LUSY, state))
+    else if(strcasecmp(CFG_STEP_STATE_LUSY, state))
     {
         return LSS_LUSY;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LUSR, state))
+    else if(strcasecmp(CFG_STEP_STATE_LUSR, state))
     {
         return LSS_LUSR;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LYSG, state))
+    else if(strcasecmp(CFG_STEP_STATE_LYSG, state))
     {
         return LSS_LYSG;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LYSY, state))
+    else if(strcasecmp(CFG_STEP_STATE_LYSY, state))
     {
         return LSS_LYSY;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LYSR, state))
+    else if(strcasecmp(CFG_STEP_STATE_LYSR, state))
     {
         return LSS_LYSR;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LRSG, state))
+    else if(strcasecmp(CFG_STEP_STATE_LRSG, state))
     {
         return LSS_LRSG;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LRSY, state))
+    else if(strcasecmp(CFG_STEP_STATE_LRSY, state))
     {
         return LSS_LRSY;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_LRSR, state))
+    else if(strcasecmp(CFG_STEP_STATE_LRSR, state))
     {
         return LSS_LRSR;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_off, state))
+    else if(strcasecmp(CFG_STEP_STATE_off, state))
     {
         return LSS_off;
     }
     return LSS_unused;
-}
+}*/
 

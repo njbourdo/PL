@@ -13,8 +13,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef TESTING
+#define STATIC  
+#else
 #define STATIC  static
-
+#endif
 
 typedef enum error
 {

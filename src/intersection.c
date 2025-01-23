@@ -5,6 +5,9 @@
  * @brief   
  *
  ****************************************************************************************/
+#define _POSIX_C_SOURCE 200809L
+
+#include <time.h>
 
 #include "main.h"
 #include "intersection.h"
@@ -12,19 +15,24 @@
 #include "lightSet.h"
 #include "display.h"
 
-static intState_t intState = IS_off;        //currently active directions of the intersection
+STATIC intState_t intState = IS_off;        //currently active directions of the intersection
 
-static void toggleActiveDirection(uint64_t millis);
-static void changeActiveDirection(intState_t state, uint64_t millis);
+STATIC void toggleActiveDirection(uint64_t millis);
+STATIC void changeActiveDirection(intState_t state, uint64_t millis);
 
 void INT_init(char* filepath)
 {
     CFG_init(filepath);
 }
 
+void INT_stateMachine(void)
+{   
+    uint64_t millis;
+    struct timespec ts;
+    
+    clock_gettime(CLOCK_MONOTONIC, &ts);    //monotonic so it's not affected by time changes
+    millis = (((uint64_t)(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
 
-void INT_stateMachine(uint64_t millis)
-{    
     switch(intState)
     {
         case IS_ns:
@@ -43,7 +51,7 @@ void INT_stateMachine(uint64_t millis)
     
 }
 
-static void toggleActiveDirection(uint64_t millis)
+STATIC void toggleActiveDirection(uint64_t millis)
 {
     if(intState == IS_ns)
     {
@@ -55,14 +63,14 @@ static void toggleActiveDirection(uint64_t millis)
     }
 }
 
-static void changeActiveDirection(intState_t state, uint64_t millis)
+STATIC void changeActiveDirection(intState_t state, uint64_t millis)
 {
     lightSet_t *set1, *set2;
     
     //confirm new state request is valid
-    if(state > IS_off)
+    if(state >= IS_off)
     {
-        state = IS_off;
+        return;
     }
     
     //check if a new state is requested
@@ -85,7 +93,7 @@ static void changeActiveDirection(intState_t state, uint64_t millis)
     }
     else
     {
-        SET_turnAllOff();
+        //not possible
         return;
     }
     
