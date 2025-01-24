@@ -18,15 +18,8 @@ static lightSetState_t incrementLightSetStep(lightSet_t* set);
 static lightState_t getArrowState(lightSetState_t setState);
 static lightState_t getSolidGreenState(lightSetState_t setState);
 
-void SET_init(void)
-{
-    /*for(uint8_t i = 0; i < ACTIVE_SETS; i++)
-    {
-        lightSets[i] = NULL;
-    }*/
-}
 
-void SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
+error_t SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
 {
     lightSet1 = set1;
     lightSet2 = set2;
@@ -34,20 +27,19 @@ void SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
     //check if set pointers are valid
     if(!lightSet1 || !lightSet2)
     {
-        //TODO: support error codes
-        return;
+        return ERR_nullPtr;
     }
     
     //set cycle start times for both sets
     lightSet1->cycleStartTime = startTime;
     lightSet2->cycleStartTime = startTime;
     
-    
+    return ERR_success;
 }
 
 lightSetState_t SET_stateMachine(uint64_t millis)
 {
-    lightSetState_t overallState = LSS_off;
+    lightSetState_t overallState = LSS_end;
     lightSetState_t lightSetState;
         
     //clock the state machines for each light set and determine the state with the lowest index
@@ -72,14 +64,14 @@ static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t milli
     if(!set)
     {
         printf("Invaid pointer!\n");
-        return LSS_off;
+        return LSS_end;
     }
     
     //check if set is being used by checking first step in pattern
     if(set->steps[0].state == LSS_unused)
     {
         printf("Unused light set\n");
-        return LSS_off;
+        return LSS_end;
     }
     
     //printf("%lu vs %lu + %lu\n", millis, set->steps[set->currentStep].expirationOffset, set->cycleStartTime);
@@ -157,10 +149,11 @@ static lightState_t getArrowState(lightSetState_t setState)
         case LSS_LRSG:
         case LSS_LRSY:
         case LSS_LRSR:
-        case LSS_off:
+        case LSS_end:
             arrowState = LS_red;
             break;
         default:
+            arrowState = LS_off;
             break;
     }
     
@@ -189,10 +182,11 @@ static lightState_t getSolidGreenState(lightSetState_t setState)
         case LSS_LUSR:
         case LSS_LYSR:
         case LSS_LRSR:
-        case LSS_off:
+        case LSS_end:
             solidGreenState = LS_red;
             break;
         default:
+            solidGreenState = LS_off;
             break;
     }
     

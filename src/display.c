@@ -97,7 +97,7 @@ void printNorthOrSouthLights(lightSet_t* set)
                 }
                 else
                 {
-                    cstr = lightColors[LS_numStates];   //used for grey
+                    cstr = lightColors[LS_off];
                 }
                 
                 lstr = lightStrings[LDT_solid];
@@ -110,7 +110,7 @@ void printNorthOrSouthLights(lightSet_t* set)
                 }
                 else
                 {
-                    cstr = lightColors[LS_numStates];   //used for grey
+                    cstr = lightColors[LS_off];
                 }
                 
                 lstr = lightStrings[LDT_solid];
@@ -127,7 +127,7 @@ void printNorthOrSouthLights(lightSet_t* set)
                 }
                 else
                 {
-                    cstr = lightColors[LS_numStates];   //used for grey
+                    cstr = lightColors[LS_off];
                     
                 }
                 

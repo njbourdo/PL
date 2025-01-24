@@ -22,9 +22,12 @@
 typedef enum error
 {
     ERR_success = 0,
+    ERR_nullPtr,
     ERR_file,
     ERR_format,
     ERR_json,
+    ERR_value,
+    ERR_other
 } error_t;
 
 

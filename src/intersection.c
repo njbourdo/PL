@@ -8,6 +8,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <time.h>
+#include <string.h>
 
 #include "main.h"
 #include "intersection.h"
@@ -16,9 +17,13 @@
 #include "display.h"
 
 STATIC intState_t intState = IS_off;        //currently active directions of the intersection
+STATIC const lightSetStep_t errorSteps[MAX_STEPS_IN_PATTERN] = PATTERN_FLASH_RED;    //error pattern
 
-STATIC void toggleActiveDirection(uint64_t millis);
-STATIC void changeActiveDirection(intState_t state, uint64_t millis);
+STATIC uint64_t getMillis(void);
+STATIC error_t toggleActiveDirection(uint64_t millis);
+STATIC error_t changeActiveDirection(intState_t state, uint64_t millis);
+
+STATIC error_t (*changeActiveDirection_ptr)(intState_t, uint64_t) = changeActiveDirection;  //function ptr for mocking
 
 void INT_init(char* filepath)
 {
@@ -27,56 +32,72 @@ void INT_init(char* filepath)
 
 void INT_stateMachine(void)
 {   
-    uint64_t millis;
-    struct timespec ts;
-    
-    clock_gettime(CLOCK_MONOTONIC, &ts);    //monotonic so it's not affected by time changes
-    millis = (((uint64_t)(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+    uint64_t millis = getMillis();   
 
     switch(intState)
     {
         case IS_ns:
         case IS_ew:
-            if(SET_stateMachine(millis) == LSS_off)
+            if(SET_stateMachine(millis) == LSS_end)
             {
-                toggleActiveDirection(millis);
+                if(toggleActiveDirection(millis) != ERR_success)
+                {
+                    changeActiveDirection(IS_error, millis);
+                }
             }
             break;
         default:
-            changeActiveDirection(IS_ns, millis);
+            if(changeActiveDirection_ptr(IS_ns, millis) != ERR_success)
+            {
+                changeActiveDirection(IS_error, millis);
+            }
             break;
     }
     
     DISP_printLightStates();
-    
 }
 
-STATIC void toggleActiveDirection(uint64_t millis)
+STATIC uint64_t getMillis(void)
 {
+    struct timespec ts;
+    
+    clock_gettime(CLOCK_MONOTONIC, &ts);    //monotonic so it's not affected by time changes
+    return (((uint64_t)(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+}
+
+STATIC error_t toggleActiveDirection(uint64_t millis)
+{
+    error_t result = ERR_success;
+    
     if(intState == IS_ns)
     {
-        changeActiveDirection(IS_ew, millis);
+        result = changeActiveDirection_ptr(IS_ew, millis);
     }
     else if(intState == IS_ew)
     {
-        changeActiveDirection(IS_ns, millis);
+        result = changeActiveDirection_ptr(IS_ns, millis);
     }
+    
+    return result;
 }
 
-STATIC void changeActiveDirection(intState_t state, uint64_t millis)
+STATIC error_t changeActiveDirection(intState_t state, uint64_t millis)
 {
+    error_t result;
     lightSet_t *set1, *set2;
     
     //confirm new state request is valid
     if(state >= IS_off)
     {
-        return;
+        printf("Invalid intersection state request: %u\n", state);
+        return ERR_value;
     }
     
     //check if a new state is requested
     if(state == intState)
     {
-        return;
+        //already in this state; nothing to do
+        return ERR_success;
     }
     
     if(state == IS_ns)
@@ -93,12 +114,29 @@ STATIC void changeActiveDirection(intState_t state, uint64_t millis)
     }
     else
     {
-        //not possible
-        return;
+        //error happened, switch to error pattern to simulate hardware taking over to flash red lights
+        printf("Changing to flashing red pattern!\n");
+        set1 = CFG_getLightSet(ID_north);
+        set2 = CFG_getLightSet(ID_south);
+        memcpy(set1->steps, errorSteps, sizeof(errorSteps));
+        memcpy(set2->steps, errorSteps, sizeof(errorSteps));
+        set1 = CFG_getLightSet(ID_east);
+        set2 = CFG_getLightSet(ID_west);
+        memcpy(set1->steps, errorSteps, sizeof(errorSteps));
+        memcpy(set2->steps, errorSteps, sizeof(errorSteps));
+        //return ERR_success;
+        state = IS_ew;
     }
     
-    SET_assignLights(set1, set2, millis);
+    //set new active configurations in lightSet module
+    result = SET_assignLights(set1, set2, millis);
+    if(result != ERR_success)
+    {
+        return result;
+    }
     
     intState = state;
+    
+    return ERR_success;
 }
 

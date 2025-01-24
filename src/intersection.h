@@ -17,6 +17,7 @@ typedef enum
 {
     IS_ns = 0,      //North-South active
     IS_ew,          //East-West active
+    IS_error,       //flashing red all directions
     IS_off          //All off (red)
 } intState_t;
 

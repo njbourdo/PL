@@ -150,7 +150,7 @@ error_t parseDirection(const cJSON* direction)
         printf("Invalid direction string: %s\n", value->valuestring);
         return ERR_format;
     }
-    printf("\n%s\n", value->valuestring);
+    //printf("\n%s\n", value->valuestring);
     
     //get lights array
     lights = cJSON_GetObjectItem(direction, "lights");
@@ -212,11 +212,9 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
     const cJSON* value = NULL;
     uint8_t stepIdx;
     lightSetState_t stepState;
-    uint64_t lastTime;
     
     //for each step...
     stepIdx = 0;
-    lastTime = 0;
     cJSON_ArrayForEach(step, steps)
     {
         if(stepIdx >= MAX_STEPS_IN_PATTERN)
@@ -238,7 +236,7 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
             printf("Invalid step state string: %s\n", value->valuestring);
             return ERR_format;
         }
-        printf("%s\n", value->valuestring);
+        //printf("%s\n", value->valuestring);
         
         //get and validate time
         value = cJSON_GetObjectItem(step, "time");
@@ -247,6 +245,7 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
             printf("Step time value not a number!\n");
             return ERR_format;
         }
+        //printf("%d\n", value->valueint);
         
         //assign step state and time values
         lightConfig->steps[stepIdx].state = stepState;
@@ -256,17 +255,15 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
         {
             lightConfig->steps[stepIdx].expirationOffset = 0;
         }
-        else if(stepState == LSS_off) //last step
+        else if(stepState == LSS_end) //last step
         {
-            lightConfigs->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
-            lightConfigs->steps[stepIdx].expirationOffset = (uint64_t)-1;
+            lightConfig->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
+            lightConfig->steps[stepIdx].expirationOffset = (uint64_t)-1;
         }
         else    //every step in between
         {
-            lightConfig->steps[stepIdx - 1].expirationOffset = lastTime;
+            lightConfig->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
         }
-        
-        lastTime = (uint64_t)value->valueint;
         
         stepIdx++;
     }
@@ -362,9 +359,13 @@ lightSetState_t getStepStateFromString(char* state)
     {
         return LSS_LRSR;
     }
-    else if(!strcasecmp(CFG_STEP_STATE_off, state))
+    else if(!strcasecmp(CFG_STEP_STATE_END, state))
     {
-        return LSS_off;
+        return LSS_end;
+    }
+    else if(!strcasecmp(CFG_STEP_STATE_DISABLE, state))
+    {
+        return LSS_disable;
     }
     return LSS_unused;
 }
