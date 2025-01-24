@@ -1,10 +1,50 @@
 /***************************************************************************************
- * @file    lightSet.c
- * @date    January 20th 2025
+ * @file    test_lightSet.c
+ * @date    January 23rd 2025
  *
  * @brief   
  *
  ****************************************************************************************/
+#include "test_main.h"
+#include "test_lightSet.h"
+#include "intersection.h"
+#include "config.h"
+#include "lightSet.h"
+
+//from lightSet.c
+extern lightSet_t* lightSet1;
+extern lightSet_t* lightSet2;
+
+//from config.c
+//extern lightSet_t lightConfigs[];
+
+//from display.c
+//extern uint8_t printedSetSteps[];
+
+//from intersection.c
+//extern intState_t intState;
+
+static void test_SET_assignLights(void **state);
+static void test_SET_stateMachine(void **state);
+static void test_clockLightSetStateMachine(void **state);
+static void test_incrementLightSetStep(void **state);
+static void test_getArrowState(void **state);
+static void test_getSolidGreenState(void **state);
+
+int test_lightSet(void)
+{
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_SET_assignLights),
+        cmocka_unit_test(test_SET_stateMachine),
+        cmocka_unit_test(test_clockLightSetStateMachine),
+        cmocka_unit_test(test_incrementLightSetStep),
+        cmocka_unit_test(test_getArrowState),
+        cmocka_unit_test(test_getSolidGreenState),
+    };
+
+    return cmocka_run_group_tests(tests, NULL, NULL);
+}
+
   /*
 #include "main.h"
 #include "lightSet.h"
@@ -18,34 +58,42 @@ static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t milli
 static lightSetState_t incrementLightSetStep(lightSet_t* set);
 static lightState_t getArrowState(lightSetState_t setState);
 static lightState_t getSolidGreenState(lightSetState_t setState);
+*/
 
-
-void SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
+//error_t SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
+static void test_SET_assignLights(void **state)
 {
+/*
     lightSet1 = set1;
     lightSet2 = set2;
     
     //check if set pointers are valid
     if(!lightSet1 || !lightSet2)
     {
-        //TODO: support error codes
-        return;
+        return ERR_nullPtr;
     }
     
     //set cycle start times for both sets
     lightSet1->cycleStartTime = startTime;
     lightSet2->cycleStartTime = startTime;
     
+    ret ERR_success;
+    */
+    (void)state;
     
+    lightSet_t set1, set2;
+    
+    //setting of new pointers
+    assert_ptr_not_equal(lightSet1, &set1);
+    assert_ptr_not_equal(lightSet2, &set2);
+    SET_assignLights(&set1, &set2, 13);
 }
 
-void LIGHT_turnAllOff(void)
-{
-    //start transition to all reds if necessary, otherwise transition to LS_off
-}
 
-lightSetState_t SET_stateMachine(uint64_t millis)
+//lightSetState_t SET_stateMachine(uint64_t millis)
+static void test_SET_stateMachine(void **state)
 {
+/*
     lightSetState_t overallState = LSS_off;
     lightSetState_t lightSetState;
         
@@ -63,10 +111,14 @@ lightSetState_t SET_stateMachine(uint64_t millis)
     }    
     
     return overallState;
+    */
+    (void)state;
 }
 
-static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis)
+extern lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis);
+static void test_clockLightSetStateMachine(void **state)
 {
+/*
     //check if set pointer is valid
     if(!set)
     {
@@ -91,10 +143,14 @@ static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t milli
     
     //return active state
     return set->steps[set->currentStep].state;
+    */
+    (void)state;
 }
 
-static lightSetState_t incrementLightSetStep(lightSet_t* set)
+extern lightSetState_t incrementLightSetStep(lightSet_t* set);
+static void test_incrementLightSetStep(void **state)
 {
+/*
     uint8_t nextStep;
     lightSetState_t nextState;
     lightState_t arrowState;
@@ -130,10 +186,14 @@ static lightSetState_t incrementLightSetStep(lightSet_t* set)
     //printf("Step %u\n", nextStep);
     
     return nextState;
+    */
+    (void)state;
 }
 
-static lightState_t getArrowState(lightSetState_t setState)
+extern lightState_t getArrowState(lightSetState_t setState);
+static void test_getArrowState(void **state)
 {
+/*
     lightState_t arrowState = LS_red;
     
     switch(setState)
@@ -164,10 +224,14 @@ static lightState_t getArrowState(lightSetState_t setState)
     }
     
     return arrowState;
+    */
+    (void)state;
 }
 
-static lightState_t getSolidGreenState(lightSetState_t setState)
+extern lightState_t getSolidGreenState(lightSetState_t setState);
+static void test_getSolidGreenState(void **state)
 {
+/*
     lightState_t solidGreenState = LS_red;
     
     switch(setState)
@@ -196,5 +260,7 @@ static lightState_t getSolidGreenState(lightSetState_t setState)
     }
     
     return solidGreenState;
-}*/
+    */
+    (void)state;
+}
 

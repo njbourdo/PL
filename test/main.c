@@ -8,6 +8,7 @@
 
 #include "test_main.h"
 #include "test_intersection.h"
+#include "test_lightSet.h"
 //#include "config.h"
 //#include "lightSet.h"
 //#include "display.h"
@@ -47,6 +48,7 @@ int main(void)
     return cmocka_run_group_tests(tests, NULL, NULL);*/
     
     result += test_intersection();
+    result += test_lightSet();
     
     return result;
 }
