@@ -14,11 +14,11 @@
                 },
                 {
                     "State" : "LUSG",
-                    "Time" : 4000
+                    "Time" : 3000
                 },
                 {
                     "State" : "LYSY",
-                    "Time" : 5000
+                    "Time" : 4500
                 },
                 {
                     "State" : "LRSR",
@@ -77,7 +77,7 @@
                     "Time" : 4000
                 },
                 {
-                    "State" : "LYSY",
+                    "State" : "LUSY",
                     "Time" : 5000
                 },
                 {
@@ -107,7 +107,7 @@
                     "Time" : 4000
                 },
                 {
-                    "State" : "LYSY",
+                    "State" : "LUSY",
                     "Time" : 5000
                 },
                 {

@@ -13,10 +13,10 @@ STATIC lightSet_t* lightSet1 = NULL;
 STATIC lightSet_t* lightSet2 = NULL;
 
 
-static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis);
-static lightSetState_t incrementLightSetStep(lightSet_t* set);
-static lightState_t getArrowState(lightSetState_t setState);
-static lightState_t getSolidGreenState(lightSetState_t setState);
+STATIC lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis);
+STATIC lightSetState_t incrementLightSetStep(lightSet_t* set);
+STATIC lightState_t getArrowState(lightSetState_t setState);
+STATIC lightState_t getSolidGreenState(lightSetState_t setState);
 
 
 error_t SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime)
@@ -58,7 +58,7 @@ lightSetState_t SET_stateMachine(uint64_t millis)
     return overallState;
 }
 
-static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis)
+STATIC lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t millis)
 {
     //check if set pointer is valid
     if(!set)
@@ -86,7 +86,7 @@ static lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t milli
     return set->steps[set->currentStep].state;
 }
 
-static lightSetState_t incrementLightSetStep(lightSet_t* set)
+STATIC lightSetState_t incrementLightSetStep(lightSet_t* set)
 {
     uint8_t nextStep;
     lightSetState_t nextState;
@@ -125,9 +125,9 @@ static lightSetState_t incrementLightSetStep(lightSet_t* set)
     return nextState;
 }
 
-static lightState_t getArrowState(lightSetState_t setState)
+STATIC lightState_t getArrowState(lightSetState_t setState)
 {
-    lightState_t arrowState = LS_red;
+    lightState_t arrowState = LS_off;
     
     switch(setState)
     {
@@ -153,16 +153,16 @@ static lightState_t getArrowState(lightSetState_t setState)
             arrowState = LS_red;
             break;
         default:
-            arrowState = LS_off;
+            //arrowState = LS_off;
             break;
     }
     
     return arrowState;
 }
 
-static lightState_t getSolidGreenState(lightSetState_t setState)
+STATIC lightState_t getSolidGreenState(lightSetState_t setState)
 {
-    lightState_t solidGreenState = LS_red;
+    lightState_t solidGreenState = LS_off;
     
     switch(setState)
     {
@@ -186,7 +186,7 @@ static lightState_t getSolidGreenState(lightSetState_t setState)
             solidGreenState = LS_red;
             break;
         default:
-            solidGreenState = LS_off;
+            //solidGreenState = LS_off;
             break;
     }
     

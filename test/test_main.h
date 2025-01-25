@@ -19,6 +19,7 @@
 
 #include "main.h"
 
-
+#define TEST_CFG1_PATH          "test/test_config1.json"
+#define TEST_CFG1_OFF_STEP      5
 
 #endif //_TEST_MAIN_H_

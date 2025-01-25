@@ -14,8 +14,6 @@
 #include "config.h"
 #include "lightSet.h"
 
-#define TEST_CFG1_PATH          "test/test_config1.json"
-#define TEST_CFG1_OFF_STEP      5
 #define SIZE_STEP_ARRAY         (sizeof(lightSetStep_t) * MAX_STEPS_IN_PATTERN)
 
 //from lightSet.c
