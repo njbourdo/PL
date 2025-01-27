@@ -36,6 +36,8 @@ int main(void)
 {
     int result = 0;
 
+    printf("\nTesting application v%s\n\n", VERSION);
+
     /*//test functions
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(dummy_test),

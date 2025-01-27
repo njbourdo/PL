@@ -19,6 +19,8 @@
 #define STATIC  static
 #endif
 
+#define VERSION     "1.0.0"
+
 //error code definitions
 typedef enum error
 {

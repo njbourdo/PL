@@ -22,6 +22,8 @@ int main (int argc, char *argv[])
 {
     char* filepath = NULL;
     
+    printf("Nick Bourdon's Traffic Light Management Application, v%s\n\n", VERSION);
+    
     //check for config file argument
     if(argc >= 2)
     {
