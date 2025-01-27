@@ -33,8 +33,13 @@
 
 #define PATTERN_FLASH_RED       {STEP_FLASH_OFF, STEP_END, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED}
 
+#define PATTERN_UNUSED          {STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED, STEP_UNUSED}
+
 #define DEFAULT_LIGHT_SET_N     {.lights = {LIGHT_ADV_GRN, LIGHT_SOLID_GRN, LIGHT_UNUSED, LIGHT_UNUSED, LIGHT_UNUSED}, \
                                  .steps = PATTERN_ADV_GRN, \
+                                 .currentStep = MAX_STEPS_IN_PATTERN - 1}
+#define UNUSED_LIGHT_SET        {.lights = {LIGHT_UNUSED, LIGHT_UNUSED, LIGHT_UNUSED, LIGHT_UNUSED, LIGHT_UNUSED}, \
+                                 .steps = PATTERN_UNUSED, \
                                  .currentStep = MAX_STEPS_IN_PATTERN - 1}
                                  
 #define DEFAULT_LIGHT_SET_E     DEFAULT_LIGHT_SET_N
@@ -42,6 +47,7 @@
 #define DEFAULT_LIGHT_SET_W     DEFAULT_LIGHT_SET_N
 
 #define DEFAULT_CONFIG          {DEFAULT_LIGHT_SET_N, DEFAULT_LIGHT_SET_E, DEFAULT_LIGHT_SET_S, DEFAULT_LIGHT_SET_W}
+#define UNUSED_CONFIG           {UNUSED_LIGHT_SET, UNUSED_LIGHT_SET, UNUSED_LIGHT_SET, UNUSED_LIGHT_SET}
 
 
 #define CFG_DIR_STR_NORTH       "north"
@@ -69,6 +75,7 @@
 #define CFG_STEP_STATE_END      "end"
 #define CFG_STEP_STATE_DISABLE  "disable"
 
+//direction heading indices
 typedef enum
 {
     ID_north = 0,
@@ -78,7 +85,7 @@ typedef enum
     ID_numDirections    //last item in list; number of valid options
 } intDirection_t;
 
-
+//********************* Public function prototypes ****************************//
 error_t CFG_init(char* filepath);
 void CFG_loadDefaults(void);
 lightSet_t* CFG_getLightSet(intDirection_t direction);

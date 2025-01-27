@@ -11,7 +11,7 @@
 * Flashing red lights on power-loss is implemented in traffic light hardware
 * Included libraries (cJSON, CMocka) are validated by their developers and will not be included in the tests for this application
 * display.c is for demonstration purposes only and will not be tested
-* An application with this design would normally include a function to validate a parsed config file to ensure that timing and light states don't conflict with normal traffic light patterns. The exact restrictions could vary from city to city. Such a validation function is not included here to simplify the implementation.
+* An application with this design would normally include a function to validate a parsed config file (or an external configuration generator) to ensure that timing and light states don't conflict with normal traffic light patterns. The exact restrictions could vary from city to city. Such a validation function or generator is not included here to simplify the implementation. In its current state, certain mis-configurations can produce undesirable or undefined behavior. It is up to the individual writing the config file to adhere to the rules described below.
 
 
 ### To run:
@@ -46,5 +46,7 @@ Traffic patterns can be provided to the application via .json files. The expecte
             * "Y" for "Yellow" - either light type
             * "R" for "Red" - either light type
     * "Time" keys are case insensitive and have integer values which represent the number of milliseconds at which the associated step should start relative to the beginning of the light cycle
+        * The time for the first step in a pattern should be 0
+        * Time values for the end steps of opposing directions should be **identical**
 * **Any invalid values will result in the configuration being ignored and default values being used.**
 * See config.json for an example

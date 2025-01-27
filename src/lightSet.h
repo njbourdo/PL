@@ -2,7 +2,7 @@
  * @file    lightSet.h
  * @date    January 20th 2025
  *
- * @brief   
+ * @brief   Light set header
  *
  ****************************************************************************************/
 
@@ -14,6 +14,7 @@
 #define MAX_LIGHTS_IN_SET       5
 #define MAX_STEPS_IN_PATTERN    10
 
+//Light set illumination state
 typedef enum lightsetstate
 {
     LSS_LPSG = 0,    //left protected, straight green
@@ -33,6 +34,7 @@ typedef enum lightsetstate
     LSS_unused       //unused step in a pattern
 } lightSetState_t;
 
+//individual light state
 typedef enum lightstate
 {
     LS_green = 0,
@@ -42,6 +44,7 @@ typedef enum lightstate
     LS_off
 } lightState_t;
 
+//light display type (solid vs arrow)
 typedef enum lightdisplaytype
 {
     LDT_unused = 0,         //unused light in set
@@ -50,26 +53,30 @@ typedef enum lightdisplaytype
     LDT_numTypes            //last item in list; number of valid options
 } lightDisplayType_t;
 
+//individual light config
 typedef struct light
 {
     lightDisplayType_t type;
     lightState_t state;
 } light_t;
 
+//illumination pattern step config
 typedef struct lightsetstep
 {
     lightSetState_t state;
     uint64_t expirationOffset;  //time from cycleStartTime that the state will expire
 } lightSetStep_t;
 
+//light set config
 typedef struct lightset
 {
     light_t lights[MAX_LIGHTS_IN_SET];    //lights contained in set
-    lightSetStep_t steps[MAX_STEPS_IN_PATTERN];     //steps in the set's light pattern
-    uint8_t currentStep;        //index of the active step in the pattern
+    lightSetStep_t steps[MAX_STEPS_IN_PATTERN];     //steps in the set's illumination pattern
+    uint8_t currentStep;        //index of the active step in the illumination pattern
     uint64_t cycleStartTime;    //timestamp of when the current cycle started
 } lightSet_t;
 
+//********************* Public function prototypes ****************************//
 
 error_t SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime);
 void SET_turnAllOff(void);

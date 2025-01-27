@@ -2,7 +2,7 @@
  * @file    intersection.h
  * @date    January 20th 2025
  *
- * @brief   
+ * @brief   Intersection management header
  *
  ****************************************************************************************/
 
@@ -12,7 +12,7 @@
 #include "main.h"
 
 
-
+//active heading index
 typedef enum
 {
     IS_ns = 0,      //North-South active
@@ -21,9 +21,7 @@ typedef enum
     IS_off          //All off (red)
 } intState_t;
 
-
-
-
+//********************* Public function prototypes ****************************//
 
 error_t INT_init(char* filepath);
 void INT_stateMachine(void);
