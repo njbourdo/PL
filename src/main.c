@@ -5,15 +5,10 @@
  * @brief   Main.c for traffic lights application
  *
  ****************************************************************************************/
-#define _POSIX_C_SOURCE 200809L
-
-#include <time.h>
 
 #include "main.h"
 
 #include "intersection.h"
-
-uint64_t get_time_millis(void);
 
 /*****************************************************************************
  ** @brief main function
@@ -26,7 +21,6 @@ uint64_t get_time_millis(void);
 int main (int argc, char *argv[])
 {
     char* filepath = NULL;
-    uint64_t currentMillis = 0;     //current milliseconds since epoch
     
     if(argc >= 2)
     {
@@ -42,17 +36,9 @@ int main (int argc, char *argv[])
     
     while(1)
     {
-        currentMillis = get_time_millis();
-        INT_stateMachine(currentMillis);
+        INT_stateMachine();
     }
 
     return 1;
 }
 
-
-uint64_t get_time_millis(void) 
-{
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);    //monotonic so it's not affected by time changes
-    return (((uint64_t)(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
-}

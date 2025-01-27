@@ -21,14 +21,14 @@
 #define LIGHT_ARROW_STR     "<-"
 const char* lightStrings[] = {LIGHT_UNUSED_STR, LIGHT_SOLID_STR, LIGHT_ARROW_STR};    //aligned with lightDisplayType_t
 const char* lightColors[] = {COLOR_GREEN, COLOR_YELLOW, COLOR_YELLOW, COLOR_RED, COLOR_GREY};    //aligned with lightState_t
-static uint8_t printedSetSteps[INT_DIRECTIONS];
+STATIC uint8_t printedSetSteps[INT_DIRECTIONS];
 
 void printNorthOrSouthLights(lightSet_t* set);
 
 void DISP_printLightStates(void)
 {
     bool printStates = false;
-    
+
     for(uint8_t i = 0; i < INT_DIRECTIONS; i++)
     {
         if(printedSetSteps[i] != CFG_getLightSet(i)->currentStep)
@@ -39,6 +39,10 @@ void DISP_printLightStates(void)
             printedSetSteps[i] = CFG_getLightSet(i)->currentStep;
         }
     }
+    
+#ifdef TESTING     //disable printing while testing
+    printStates = false;
+#endif
     
     if(!printStates)
     {
@@ -74,6 +78,7 @@ void printNorthOrSouthLights(lightSet_t* set)
 {
     const char* lstr = NULL;
     const char* cstr = NULL;
+    
     for(uint8_t j = 0; j < 3; j++)
     {
         for(uint8_t i = 0; i < MAX_LIGHTS_IN_SET; i++)
@@ -92,10 +97,10 @@ void printNorthOrSouthLights(lightSet_t* set)
                 }
                 else
                 {
-                    cstr = lightColors[LS_numStates];   //used for grey
+                    cstr = lightColors[LS_off];
                 }
                 
-                lstr = lightStrings[LDT_solid];
+                lstr = lightStrings[set->lights[i].type];
             }
             else if(j == 1) //yellow light
             {
@@ -105,10 +110,10 @@ void printNorthOrSouthLights(lightSet_t* set)
                 }
                 else
                 {
-                    cstr = lightColors[LS_numStates];   //used for grey
+                    cstr = lightColors[LS_off];
                 }
                 
-                lstr = lightStrings[LDT_solid];
+                lstr = lightStrings[set->lights[i].type];
             }
             else if(j == 2) //green/arrow light
             {
@@ -122,7 +127,7 @@ void printNorthOrSouthLights(lightSet_t* set)
                 }
                 else
                 {
-                    cstr = lightColors[LS_numStates];   //used for grey
+                    cstr = lightColors[LS_off];
                     
                 }
                 

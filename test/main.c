@@ -6,27 +6,23 @@
  *
  ****************************************************************************************/
 
-
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-
-
-//#include "lights.h"
+#include "test_main.h"
+#include "test_intersection.h"
+#include "test_lightSet.h"
+#include "test_config.h"
 
 /*****************************************************************************
- ** @brief null test
+ ** @brief dummy test
  **     a test that does nothing and succeeds
  **
  ** @param state
  **
  ** @return none
 ******************************************************************************/
-static void null_test_success(void **state) 
+/*static void dummy_test(void **state) 
 {
     (void) state;
-}
+}*/
 
 /*****************************************************************************
  ** @brief test runner main
@@ -38,13 +34,20 @@ static void null_test_success(void **state)
 ******************************************************************************/
 int main(void) 
 {
+    int result = 0;
 
-    //test functions
+    /*//test functions
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(null_test_success),
+        cmocka_unit_test(dummy_test),
     };
 
 
     //run tests
-    return cmocka_run_group_tests(tests, NULL, NULL);
+    return cmocka_run_group_tests(tests, NULL, NULL);*/
+    
+    result += test_intersection();
+    result += test_lightSet();
+    result += test_config();
+    
+    return result;
 }
