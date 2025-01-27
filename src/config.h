@@ -75,6 +75,7 @@
 #define CFG_STEP_STATE_END      "end"
 #define CFG_STEP_STATE_DISABLE  "disable"
 
+//direction heading indices
 typedef enum
 {
     ID_north = 0,
@@ -84,7 +85,7 @@ typedef enum
     ID_numDirections    //last item in list; number of valid options
 } intDirection_t;
 
-
+//********************* Public function prototypes ****************************//
 error_t CFG_init(char* filepath);
 void CFG_loadDefaults(void);
 lightSet_t* CFG_getLightSet(intDirection_t direction);

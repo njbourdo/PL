@@ -12,9 +12,9 @@
 
 /*****************************************************************************
  ** @brief main function
- **     Initialized the intersection and clocks its state machine
+ **     Initializes the intersection and clocks its state machine
  **
- ** @param none
+ ** @param single argument: path to config file
  **
  ** @return 1
 ******************************************************************************/
@@ -22,6 +22,7 @@ int main (int argc, char *argv[])
 {
     char* filepath = NULL;
     
+    //check for config file argument
     if(argc >= 2)
     {
         filepath = argv[1];
@@ -32,6 +33,7 @@ int main (int argc, char *argv[])
         printf("Using default configuration\n");
     }
     
+    //initialize config
     INT_init(filepath);
     
     while(1)

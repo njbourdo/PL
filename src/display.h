@@ -2,7 +2,7 @@
  * @file    display.h
  * @date    January 22nd 2025
  *
- * @brief   
+ * @brief   header for displaying lights to console
  *
  ****************************************************************************************/
 
@@ -12,6 +12,7 @@
 #include "main.h"
 #include "lightSet.h"
 
+//********************* Public function prototypes ****************************//
 
 void DISP_printLightStates(void);
 

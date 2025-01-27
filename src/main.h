@@ -2,7 +2,7 @@
  * @file    main.h
  * @date    January 20th 2025
  *
- * @brief   
+ * @brief   main header
  *
  ****************************************************************************************/
 
@@ -19,6 +19,7 @@
 #define STATIC  static
 #endif
 
+//error code definitions
 typedef enum error
 {
     ERR_success = 0,

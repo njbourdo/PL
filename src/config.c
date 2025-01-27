@@ -2,7 +2,7 @@
  * @file    config.c
  * @date    January 20th 2025
  *
- * @brief   
+ * @brief   Configuration management for an intersection
  *
  ****************************************************************************************/
 
@@ -13,9 +13,10 @@
 #include "config.h"
 #include "cJSON/cJSON.h"
 
+//*********************** Static variables ***********************************//
+STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = UNUSED_CONFIG;     //intersection config source of truth
 
-STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = UNUSED_CONFIG;
-
+//********************* Local function prototypes ****************************//
 STATIC error_t parseConfig(const char* json);
 STATIC error_t parseDirection(const cJSON* direction);
 STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
@@ -24,9 +25,21 @@ STATIC intDirection_t getDirectionIdxFromString(char* dir);
 STATIC lightDisplayType_t getLightTypeFromString(char* type);
 STATIC lightSetState_t getStepStateFromString(char* state);
 
-STATIC void* (*malloc_ptr)(size_t) = malloc;  //function ptr for mocking
-STATIC size_t (*fread_ptr)(void*, size_t, size_t, FILE*) = fread;  //function ptr for mocking
+//************************* Function pointers ********************************//
+STATIC void* (*malloc_ptr)(size_t) = malloc;                        //function ptr for mocking
+STATIC size_t (*fread_ptr)(void*, size_t, size_t, FILE*) = fread;   //function ptr for mocking
+
+//************************ Public functions *********************************//
  
+ /*****************************************************************************
+ ** @brief Configuration initialization
+ **     Init the stored config with the contents of the provided file path, if
+ **     loading of that config fails, use default values.
+ **
+ ** @param filepath: path to config file
+ **
+ ** @return error code
+******************************************************************************/
 error_t CFG_init(char* filepath)
 {
     FILE* file;
@@ -82,6 +95,13 @@ error_t CFG_init(char* filepath)
     return result;
 }
 
+ /*****************************************************************************
+ ** @brief Load default config values
+ **
+ ** @param none
+ **
+ ** @return none
+******************************************************************************/
 void CFG_loadDefaults(void)
 {
     lightSet_t defaultConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
@@ -92,6 +112,14 @@ void CFG_loadDefaults(void)
     }
 }
 
+ /*****************************************************************************
+ ** @brief Get a light set
+ **     Get the saved configation for a given direction
+ **
+ ** @param direction: direction of requested light set
+ **
+ ** @return pointer to light set
+******************************************************************************/
 lightSet_t* CFG_getLightSet(intDirection_t direction)
 {
     if(direction >= ID_numDirections)
@@ -102,12 +130,23 @@ lightSet_t* CFG_getLightSet(intDirection_t direction)
     return &lightConfigs[direction];
 }
 
+//************************* Local functions *********************************//
+
+ /*****************************************************************************
+ ** @brief Parse a JSON string
+ **     Extract an intersection configuration from the provided JSON string. 
+ **     Any deviation from the expected format will result in a failure.
+ **
+ ** @param json: json string containing an intersection config
+ **
+ ** @return error code
+******************************************************************************/
 STATIC error_t parseConfig(const char* json)
 {
     error_t result = ERR_success;
-    cJSON* root;
-    const cJSON* intersection = NULL;
-    const cJSON* direction = NULL;
+    cJSON* root;                        //json root object
+    const cJSON* intersection = NULL;   //intersection object
+    const cJSON* direction = NULL;      //direction object
     
     //convert JSON string to cJSON object
     root = cJSON_Parse(json);
@@ -142,21 +181,30 @@ STATIC error_t parseConfig(const char* json)
     return result;
 }
 
+ /*****************************************************************************
+ ** @brief Parse direction object
+ **     Parse a direction object within an intersection JSON config
+ **
+ ** @param directon: pointer to direction JSON object to parse
+ **
+ ** @return error code
+******************************************************************************/
 STATIC error_t parseDirection(const cJSON* direction)
 {
-    const cJSON* lights = NULL;
-    const cJSON* steps = NULL;
-    const cJSON* value = NULL;
-    intDirection_t directionIdx;
-    error_t result = ERR_success;
+    const cJSON* lights = NULL;     //lights array JSON object
+    const cJSON* steps = NULL;      //steps array JSON object
+    const cJSON* value = NULL;      //generic JSON object
+    intDirection_t directionIdx;    //direction index
+    error_t result = ERR_success;   
     
-    //get direction
+    //get direction heading (north/south/east/west) from direction object
     value = cJSON_GetObjectItem(direction, "direction");
     if(!cJSON_IsString(value))
     {
         printf("Direction value not a string!\n");
         return ERR_format;
     }
+    //convert heading to index value
     directionIdx = getDirectionIdxFromString(value->valuestring);
     if(directionIdx >= ID_numDirections)
     {
@@ -173,7 +221,7 @@ STATIC error_t parseDirection(const cJSON* direction)
         return ERR_format;
     }
     
-    //parse lights
+    //parse light types
     result = parseLights(&lightConfigs[directionIdx], lights);
     if(result != ERR_success)
     {
@@ -198,6 +246,15 @@ STATIC error_t parseDirection(const cJSON* direction)
     return result;
 }
 
+ /*****************************************************************************
+ ** @brief Parse light array
+ **     Parse JSON array of light types
+ **
+ ** @param lightConfig: pointer to config into which light array should be saved
+ ** @param lights: JSON lights array object to parse
+ **
+ ** @return error code
+******************************************************************************/
 STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
 {
     const cJSON* light = NULL;
@@ -208,17 +265,21 @@ STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
     lightIdx = 0;
     cJSON_ArrayForEach(light, lights)
     {
+        //check light index
         if(lightIdx >= MAX_LIGHTS_IN_SET)
         {
             printf("Logic only supports %u lights per set\n", MAX_LIGHTS_IN_SET);
             return ERR_format;
         }
+        
+        //check value format
         if(!cJSON_IsString(light))
         {
             printf("Light %u type value not a string!\n", lightIdx);
             return ERR_format;
         }
         
+        //convert value string into light type and save to config
         lightType = getLightTypeFromString(light->valuestring);
         lightConfig->lights[lightIdx].type = lightType;
         lightConfig->lights[lightIdx].state = LS_red;
@@ -229,6 +290,15 @@ STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
     return ERR_success;
 }
 
+ /*****************************************************************************
+ ** @brief Parse steps array
+ **     Parse JSON array of light pattern steps
+ **
+ ** @param lightConfig: pointer to config into which steps array should be saved
+ ** @param steps: JSON steps array object to parse
+ **
+ ** @return error code
+******************************************************************************/
 STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
 {
     const cJSON* step = NULL;
@@ -240,6 +310,7 @@ STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
     stepIdx = 0;
     cJSON_ArrayForEach(step, steps)
     {
+        //check steps index
         if(stepIdx >= MAX_STEPS_IN_PATTERN)
         {
             printf("Logic only supports %u steps per pattern\n", MAX_STEPS_IN_PATTERN);
@@ -294,6 +365,14 @@ STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
     return ERR_success;
 }
 
+ /*****************************************************************************
+ ** @brief Get direction index from string
+ **     Convert a direction string to a direction index
+ **
+ ** @param dir: direction heading string
+ **
+ ** @return direction index
+******************************************************************************/
 STATIC intDirection_t getDirectionIdxFromString(char* dir)
 {
     if(!strcasecmp(CFG_DIR_STR_NORTH, dir))
@@ -315,6 +394,14 @@ STATIC intDirection_t getDirectionIdxFromString(char* dir)
     return ID_numDirections;
 }
 
+ /*****************************************************************************
+ ** @brief Get light type from string
+ **     Convert a light type string to a light type index
+ **
+ ** @param type: light type string
+ **
+ ** @return light type index
+******************************************************************************/
 STATIC lightDisplayType_t getLightTypeFromString(char* type)
 {
     switch(type[0])
@@ -332,6 +419,14 @@ STATIC lightDisplayType_t getLightTypeFromString(char* type)
     return LDT_unused;
 }
 
+ /*****************************************************************************
+ ** @brief Get step state index from string
+ **     Convert a step state string to a step state index
+ **
+ ** @param state: light step state string
+ **
+ ** @return light step state index
+******************************************************************************/
 STATIC lightSetState_t getStepStateFromString(char* state)
 {
     if(!strcasecmp(CFG_STEP_STATE_LPSG, state))
