@@ -1,0 +1,54 @@
+{
+    "Intersection" : [
+        {
+            "Direction" : "north",
+            "Lights" : [ "<", "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LUSG",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 1000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 3000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 4000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 5000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 6000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 7000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 8000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 9000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 10000
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "Intersection" : [
+        {
+            "Direction" : "north",
+            "Lights" : [ "<", "o" ],
+            "Steps": "step"
+        }
+    ]
+}
