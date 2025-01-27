@@ -70,7 +70,7 @@ STATIC lightSetState_t clockLightSetStateMachine(lightSet_t* set, uint64_t milli
     //check if set is being used by checking first step in pattern
     if(set->steps[0].state == LSS_unused)
     {
-        printf("Unused light set\n");
+        //printf("Unused light set\n");
         return LSS_end;
     }
     

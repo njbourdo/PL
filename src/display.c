@@ -19,11 +19,22 @@
 #define LIGHT_UNUSED_STR    "  "
 #define LIGHT_SOLID_STR     "O "
 #define LIGHT_ARROW_STR     "<-"
+
+typedef enum lightid
+{
+    LID_red = 0,
+    LID_yellow,
+    LID_green,
+    LID_lightIDs
+} lightID_t;
+
 const char* lightStrings[] = {LIGHT_UNUSED_STR, LIGHT_SOLID_STR, LIGHT_ARROW_STR};    //aligned with lightDisplayType_t
 const char* lightColors[] = {COLOR_GREEN, COLOR_YELLOW, COLOR_YELLOW, COLOR_RED, COLOR_GREY};    //aligned with lightState_t
 STATIC uint8_t printedSetSteps[INT_DIRECTIONS];
 
 void printNorthOrSouthLights(lightSet_t* set);
+void printWestAndEastLights(lightSet_t* west, lightSet_t* east);
+void printLightTypeString(lightID_t LID, lightSet_t* set);
 
 void DISP_printLightStates(void)
 {
@@ -53,44 +64,88 @@ void DISP_printLightStates(void)
     printf("\033[H");  // Move the cursor to the top-left corner
 
     //print lights visible for vehicles heading North
-    printf("North: %u\n", CFG_getLightSet(ID_north)->currentStep);
-    printNorthOrSouthLights(CFG_getLightSet(ID_north));
+    if(CFG_getLightSet(ID_north))
+    {
+        printf("             North: %u\n", CFG_getLightSet(ID_north)->currentStep);
+        printNorthOrSouthLights(CFG_getLightSet(ID_north));
+    }
     
     //print lights visible for vehicles heading West and East
-    //printWestAndEastLights(&lightConfigs[ID_west], &lightConfigs[ID_east]);
-    printf("East: %u\n", CFG_getLightSet(ID_east)->currentStep);
-    printNorthOrSouthLights(CFG_getLightSet(ID_east));
-    printf("West: %u\n", CFG_getLightSet(ID_west)->currentStep);
-    printNorthOrSouthLights(CFG_getLightSet(ID_west));
+    if(CFG_getLightSet(ID_west))
+    {
+        printf("West: %u", CFG_getLightSet(ID_west)->currentStep);
+    }
+    else
+    {
+        printf("       ");
+    }
+    printf("                   ");
+    if(CFG_getLightSet(ID_east))
+    {
+        printf("East: %u", CFG_getLightSet(ID_east)->currentStep);
+    }
+    printf("\n");
+    printWestAndEastLights(CFG_getLightSet(ID_west), CFG_getLightSet(ID_east));
     
     //print lights visible for vehicles heading South
-    //printNorthOrSouthLights(&lightConfigs[ID_south]);
-    printf("South: %u\n", CFG_getLightSet(ID_south)->currentStep);
-    printNorthOrSouthLights(CFG_getLightSet(ID_south));
-    
-    //printf("\033[1;32mThis text is bright green.\033[0m\n");
-
+    if(CFG_getLightSet(ID_south))
+    {
+        printf("             South: %u\n", CFG_getLightSet(ID_south)->currentStep);
+        printNorthOrSouthLights(CFG_getLightSet(ID_south));
+    }
 }
 
-
-
 void printNorthOrSouthLights(lightSet_t* set)
+{    
+    if(!set)
+    {
+        return;
+    }
+    
+    for(lightID_t lid = LID_red; lid < LID_lightIDs; lid++)
+    {
+        printf("             ");
+        printLightTypeString(lid, set);
+        printf("\n");
+    }
+    printf("\n");
+}
+
+void printWestAndEastLights(lightSet_t* west, lightSet_t* east)
+{    
+    for(lightID_t lid = LID_red; lid < LID_lightIDs; lid++)
+    {
+        printLightTypeString(lid, west);
+        printf("           ");
+        printLightTypeString(lid, east);
+        printf("\n");
+    }
+    printf("\n");
+}
+
+void printLightTypeString(lightID_t LID, lightSet_t* set)
 {
     const char* lstr = NULL;
     const char* cstr = NULL;
     
-    for(uint8_t j = 0; j < 3; j++)
+    for(uint8_t i = 0; i < MAX_LIGHTS_IN_SET; i++)
     {
-        for(uint8_t i = 0; i < MAX_LIGHTS_IN_SET; i++)
+        //null light set
+        if(!set)
         {
-            if(set->lights[i].type == LDT_unused)
-            {
-                printf("%s ", lightStrings[LDT_unused]);
-                continue;
-            }
-            
-            if(j == 0) //red light
-            {
+            printf("%s ", lightStrings[LDT_unused]);
+            continue;
+        }
+        //unused light set
+        if(set->lights[i].type == LDT_unused)
+        {
+            printf("%s ", lightStrings[LDT_unused]);
+            continue;
+        }
+    
+        switch(LID)
+        {
+            case LID_red:
                 if(set->lights[i].state == LS_red)
                 {
                     cstr = lightColors[LS_red];
@@ -99,11 +154,8 @@ void printNorthOrSouthLights(lightSet_t* set)
                 {
                     cstr = lightColors[LS_off];
                 }
-                
-                lstr = lightStrings[set->lights[i].type];
-            }
-            else if(j == 1) //yellow light
-            {
+                break;
+            case LID_yellow:
                 if(set->lights[i].state == LS_yellow)
                 {
                     cstr = lightColors[LS_yellow];
@@ -112,11 +164,8 @@ void printNorthOrSouthLights(lightSet_t* set)
                 {
                     cstr = lightColors[LS_off];
                 }
-                
-                lstr = lightStrings[set->lights[i].type];
-            }
-            else if(j == 2) //green/arrow light
-            {
+                break;
+            case LID_green:
                 if(set->lights[i].state == LS_green)
                 {
                     cstr = lightColors[LS_green];
@@ -128,15 +177,14 @@ void printNorthOrSouthLights(lightSet_t* set)
                 else
                 {
                     cstr = lightColors[LS_off];
-                    
                 }
-                
-                lstr = lightStrings[set->lights[i].type];
-            }
-            printf("%s%s %s", cstr, lstr, COLOR_RESET);
+                break;
+            default:
+                cstr = lightStrings[LDT_unused];
+                break;
         }
-        printf("\n");
+        lstr = lightStrings[set->lights[i].type];
+        printf("%s%s %s", cstr, lstr, COLOR_RESET);
     }
-    printf("\n");
 }
 

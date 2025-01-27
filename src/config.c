@@ -14,7 +14,7 @@
 #include "cJSON/cJSON.h"
 
 
-STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
+STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = UNUSED_CONFIG;
 
 STATIC error_t parseConfig(const char* json);
 STATIC error_t parseDirection(const cJSON* direction);
