@@ -14,29 +14,33 @@
 #include "cJSON/cJSON.h"
 
 
-static lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
+STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
 
-error_t parseConfig(const char* json);
-error_t parseDirection(const cJSON* direction);
-error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
-error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps);
-intDirection_t getDirectionIdxFromString(char* dir);
-lightDisplayType_t getLightTypeFromString(char* type);
-lightSetState_t getStepStateFromString(char* state);
+STATIC error_t parseConfig(const char* json);
+STATIC error_t parseDirection(const cJSON* direction);
+STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
+STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps);
+STATIC intDirection_t getDirectionIdxFromString(char* dir);
+STATIC lightDisplayType_t getLightTypeFromString(char* type);
+STATIC lightSetState_t getStepStateFromString(char* state);
+
+STATIC void* (*malloc_ptr)(size_t) = malloc;  //function ptr for mocking
+STATIC size_t (*fread_ptr)(void*, size_t, size_t, FILE*) = fread;  //function ptr for mocking
  
-void CFG_init(char* filepath)
+error_t CFG_init(char* filepath)
 {
     FILE* file;
     long fileSize;
     char* json;
     size_t readBytes;
+    error_t result;
     
     //open file
     file = fopen(filepath, "r");
     if(!file)
     {
         printf("Failed to open file, using default values\n");
-        return;
+        return ERR_file;
     }
 
     //determine file size
@@ -45,33 +49,37 @@ void CFG_init(char* filepath)
     rewind(file);
 
     //malloc space for file contents
-    json = (char *)malloc(fileSize + 1);  // +1 for null terminator
+    json = (char *)malloc_ptr(fileSize + 1);  // +1 for null terminator
     if(!json)
     {
         printf("Failed to allocate memory for JSON content, using default values\n");
         fclose(file);
-        return;
+        return ERR_mem;
     }
 
     //read and null terminate the resulting string, just in case
-    readBytes = fread(json, 1, fileSize, file);
+    readBytes = fread_ptr(json, 1, fileSize, file);
     if((long)readBytes != fileSize)
     {
         printf("Failed to read all bytes from file (%lu of %li), using default values\n", readBytes, fileSize);
         fclose(file);
         free(json);
-        return;
+        return ERR_other;
     }
     json[fileSize] = '\0';
 
     fclose(file);
     
-    if(parseConfig(json) != ERR_success)
+    result = parseConfig(json);
+    if(result != ERR_success)
     {
         printf("Failed to load config, using default values\n");
+        CFG_loadDefaults();
     }
     
     free(json);
+    
+    return result;
 }
 
 void CFG_loadDefaults(void)
@@ -86,7 +94,7 @@ void CFG_loadDefaults(void)
 
 lightSet_t* CFG_getLightSet(intDirection_t direction)
 {
-    if(direction > ID_west)
+    if(direction >= ID_numDirections)
     {
         return NULL;
     }
@@ -94,7 +102,7 @@ lightSet_t* CFG_getLightSet(intDirection_t direction)
     return &lightConfigs[direction];
 }
 
-error_t parseConfig(const char* json)
+STATIC error_t parseConfig(const char* json)
 {
     error_t result = ERR_success;
     cJSON* root;
@@ -112,13 +120,18 @@ error_t parseConfig(const char* json)
     //get intersection object
     intersection = cJSON_GetObjectItem(root, "intersection");
     
+    if(!cJSON_IsArray(intersection))
+    {
+        printf("Failed to extract intersection array object!\n");
+        return ERR_format;
+    }
+    
     //for each direction in intersection...
     cJSON_ArrayForEach(direction, intersection)
     {
         result = parseDirection(direction);
         if(result != ERR_success)
         {
-            CFG_loadDefaults();
             break;
         }
     }
@@ -129,7 +142,7 @@ error_t parseConfig(const char* json)
     return result;
 }
 
-error_t parseDirection(const cJSON* direction)
+STATIC error_t parseDirection(const cJSON* direction)
 {
     const cJSON* lights = NULL;
     const cJSON* steps = NULL;
@@ -141,43 +154,51 @@ error_t parseDirection(const cJSON* direction)
     value = cJSON_GetObjectItem(direction, "direction");
     if(!cJSON_IsString(value))
     {
-        printf("Direction value not a string! Reverting to defaults\n");
+        printf("Direction value not a string!\n");
         return ERR_format;
     }
     directionIdx = getDirectionIdxFromString(value->valuestring);
     if(directionIdx >= ID_numDirections)
     {
-        printf("Invalid direction string: %s. Reverting to defaults\n", value->valuestring);
+        printf("Invalid direction string: %s\n", value->valuestring);
         return ERR_format;
     }
-    printf("\n%s\n", value->valuestring);
+    //printf("\n%s\n", value->valuestring);
     
     //get lights array
     lights = cJSON_GetObjectItem(direction, "lights");
+    if(!cJSON_IsArray(lights))
+    {
+        printf("Invalid light config array\n");
+        return ERR_format;
+    }
     
     //parse lights
     result = parseLights(&lightConfigs[directionIdx], lights);
     if(result != ERR_success)
     {
-        CFG_loadDefaults();
         return result;
     }
     
     //get steps array
     steps = cJSON_GetObjectItem(direction, "steps");
+    if(!cJSON_IsArray(steps))
+    {
+        printf("Invalid step config array\n");
+        return ERR_format;
+    }
     
     //parse steps
-    result = parseLights(&lightConfigs[directionIdx], steps);
+    result = parseSteps(&lightConfigs[directionIdx], steps);
     if(result != ERR_success)
     {
-        CFG_loadDefaults();
         return result;
     }
     
     return result;
 }
 
-error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
+STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
 {
     const cJSON* light = NULL;
     uint8_t lightIdx;
@@ -189,12 +210,12 @@ error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
     {
         if(lightIdx >= MAX_LIGHTS_IN_SET)
         {
-            printf("Logic only supports %u lights per set, reverting to defaults\n", MAX_LIGHTS_IN_SET);
+            printf("Logic only supports %u lights per set\n", MAX_LIGHTS_IN_SET);
             return ERR_format;
         }
         if(!cJSON_IsString(light))
         {
-            printf("Light type value not a string! reverting to defaults\n");
+            printf("Light %u type value not a string!\n", lightIdx);
             return ERR_format;
         }
         
@@ -208,22 +229,20 @@ error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
     return ERR_success;
 }
 
-error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
+STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
 {
     const cJSON* step = NULL;
     const cJSON* value = NULL;
     uint8_t stepIdx;
     lightSetState_t stepState;
-    uint64_t lastTime;
     
     //for each step...
     stepIdx = 0;
-    lastTime = 0;
     cJSON_ArrayForEach(step, steps)
     {
         if(stepIdx >= MAX_STEPS_IN_PATTERN)
         {
-            printf("Logic only supports %u steps per pattern; reverting to defaults\n", MAX_STEPS_IN_PATTERN);
+            printf("Logic only supports %u steps per pattern\n", MAX_STEPS_IN_PATTERN);
             return ERR_format;
         }
         
@@ -231,24 +250,25 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
         value = cJSON_GetObjectItem(step, "state");
         if(!cJSON_IsString(value))
         {
-            printf("Step state value not a string! reverting to defaults\n");
+            printf("Step state value not a string!\n");
             return ERR_format;
         }
         stepState = getStepStateFromString(value->valuestring);
         if(stepState >= LSS_unused)
         {
-            printf("Invalid step state string: %s. reverting to defaults\n", value->valuestring);
+            printf("Invalid step state string: %s\n", value->valuestring);
             return ERR_format;
         }
-        printf("%s\n", value->valuestring);
+        //printf("%s\n", value->valuestring);
         
         //get and validate time
         value = cJSON_GetObjectItem(step, "time");
         if(!cJSON_IsNumber(value))
         {
-            printf("Step time value not a number! reverting to defaults\n");
+            printf("Step time value not a number!\n");
             return ERR_format;
         }
+        //printf("%d\n", value->valueint);
         
         //assign step state and time values
         lightConfig->steps[stepIdx].state = stepState;
@@ -258,17 +278,15 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
         {
             lightConfig->steps[stepIdx].expirationOffset = 0;
         }
-        else if(stepState == LSS_off) //last step
+        else if(stepState == LSS_end) //last step
         {
-            lightConfigs->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
-            lightConfigs->steps[stepIdx].expirationOffset = (uint64_t)-1;
+            lightConfig->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
+            lightConfig->steps[stepIdx].expirationOffset = (uint64_t)-1;
         }
         else    //every step in between
         {
-            lightConfig->steps[stepIdx - 1].expirationOffset = lastTime;
+            lightConfig->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
         }
-        
-        lastTime = (uint64_t)value->valueint;
         
         stepIdx++;
     }
@@ -276,28 +294,28 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
     return ERR_success;
 }
 
-intDirection_t getDirectionIdxFromString(char* dir)
+STATIC intDirection_t getDirectionIdxFromString(char* dir)
 {
-    if(strcasecmp(CFG_DIR_STR_NORTH, dir))
+    if(!strcasecmp(CFG_DIR_STR_NORTH, dir))
     {
         return ID_north;
     }
-    else if(strcasecmp(CFG_DIR_STR_EAST, dir))
+    else if(!strcasecmp(CFG_DIR_STR_EAST, dir))
     {
         return ID_east;
     }
-    else if(strcasecmp(CFG_DIR_STR_SOUTH, dir))
+    else if(!strcasecmp(CFG_DIR_STR_SOUTH, dir))
     {
         return ID_south;
     }
-    else if(strcasecmp(CFG_DIR_STR_WEST, dir))
+    else if(!strcasecmp(CFG_DIR_STR_WEST, dir))
     {
         return ID_west;
     }
     return ID_numDirections;
 }
 
-lightDisplayType_t getLightTypeFromString(char* type)
+STATIC lightDisplayType_t getLightTypeFromString(char* type)
 {
     switch(type[0])
     {
@@ -314,59 +332,63 @@ lightDisplayType_t getLightTypeFromString(char* type)
     return LDT_unused;
 }
 
-lightSetState_t getStepStateFromString(char* state)
+STATIC lightSetState_t getStepStateFromString(char* state)
 {
-    if(strcasecmp(CFG_STEP_STATE_LPSG, state))
+    if(!strcasecmp(CFG_STEP_STATE_LPSG, state))
     {
         return LSS_LPSG;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LPSY, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LPSY, state))
     {
         return LSS_LPSY;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LPSR, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LPSR, state))
     {
         return LSS_LPSR;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LUSG, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LUSG, state))
     {
         return LSS_LUSG;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LUSY, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LUSY, state))
     {
         return LSS_LUSY;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LUSR, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LUSR, state))
     {
         return LSS_LUSR;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LYSG, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LYSG, state))
     {
         return LSS_LYSG;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LYSY, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LYSY, state))
     {
         return LSS_LYSY;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LYSR, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LYSR, state))
     {
         return LSS_LYSR;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LRSG, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LRSG, state))
     {
         return LSS_LRSG;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LRSY, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LRSY, state))
     {
         return LSS_LRSY;
     }
-    else if(strcasecmp(CFG_STEP_STATE_LRSR, state))
+    else if(!strcasecmp(CFG_STEP_STATE_LRSR, state))
     {
         return LSS_LRSR;
     }
-    else if(strcasecmp(CFG_STEP_STATE_off, state))
+    else if(!strcasecmp(CFG_STEP_STATE_END, state))
     {
-        return LSS_off;
+        return LSS_end;
+    }
+    else if(!strcasecmp(CFG_STEP_STATE_DISABLE, state))
+    {
+        return LSS_disable;
     }
     return LSS_unused;
 }

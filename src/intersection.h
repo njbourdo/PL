@@ -17,6 +17,7 @@ typedef enum
 {
     IS_ns = 0,      //North-South active
     IS_ew,          //East-West active
+    IS_error,       //flashing red all directions
     IS_off          //All off (red)
 } intState_t;
 
@@ -24,8 +25,8 @@ typedef enum
 
 
 
-void INT_init(char* filepath);
-void INT_stateMachine(uint64_t millis);
+error_t INT_init(char* filepath);
+void INT_stateMachine(void);
 
 
 #endif //_INTERSECTION_H_

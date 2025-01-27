@@ -21,6 +21,8 @@ INCS := -I$(SRCDIR) -I$(LIBDIR)
 
 # flags
 CFLAGS := -O3 $(STD) $(WARNS) $(INCS)
+TEST_CFLAGS := -O0 $(STD) $(WARNS) $(INCS) -fprofile-arcs -ftest-coverage
+LDFLAGS := -fprofile-arcs -ftest-coverage
 
 # cmocka
 CMOCKA := -l cmocka -L /usr/lib
@@ -29,7 +31,11 @@ CMOCKA := -l cmocka -L /usr/lib
 TEST_BINARY := $(BINARY)_test_runner
 
 # c files
-FILES := $(wildcard $(SRCDIR)/*.c) $(wildcard $(LIBDIR)/*/*.c)
+MAIN_FILES := $(SRCDIR)/main.*
+LIB_FILES := $(wildcard $(LIBDIR)/*/*.c)
+APP_FILES := $(filter-out $(SRCDIR)/main.c, $(wildcard $(SRCDIR)/*.c))
+GCOV_FILES := $(filter-out $(SRCDIR)/main.c $(SRCDIR)/display.c, $(wildcard $(SRCDIR)/*.c))
+TEST_FILES := $(wildcard $(TESTDIR)/*.c)
 
 ### Make Options ###
 
@@ -46,14 +52,18 @@ help:
 
 # Build normal binary
 all:
-	$(CC) -o $(BINDIR)/$(BINARY) $(FILES) $(CFLAGS)
+	$(CC) -o $(BINDIR)/$(BINARY) $(MAIN_FILES) $(APP_FILES) $(LIB_FILES) $(CFLAGS)
 	@echo "Binary file : $(BINDIR)/$(BINARY)";
 
 # Build and run test binary
-tests:
-	$(CC) $(TESTDIR)/main.c -o $(BINDIR)/$(TEST_BINARY) $(CFLAGS) $(CMOCKA)
+tests: clean
+	$(CC) -o $(BINDIR)/$(TEST_BINARY) $(TEST_FILES) $(APP_FILES) $(LIB_FILES) $(TEST_CFLAGS) $(CMOCKA) -DTESTING
 	@echo "Running tests: ";
 	./$(BINDIR)/$(TEST_BINARY)
+	#gcov -o $(BINDIR) $(SRCDIR)/*.c
+	#gcov -o $(BINDIR) $(addprefix $(SRCDIR)/, $(notdir $(basename $(APP_FILES))))
+	gcov -o $(BINDIR) $(addprefix $(BINDIR)/$(notdir $(TEST_BINARY))-,$(notdir $(GCOV_FILES)))
+	@mv *.gcov $(BINDIR)/
 
 clean:
-	@rm -rvf $(BINDIR)/*
+	@rm -rf $(BINDIR)/*

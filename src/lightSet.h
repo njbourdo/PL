@@ -28,7 +28,8 @@ typedef enum lightsetstate
     LSS_LRSG,        //left red, straight green
     LSS_LRSY,        //left red, straight yellow
     LSS_LRSR,        //left red, straight red
-    LSS_off,         //all lights red with no time restrictions
+    LSS_disable,     //all lights disabled with no time restrictions
+    LSS_end,         //all lights red with no time restrictions
     LSS_unused       //unused step in a pattern
 } lightSetState_t;
 
@@ -38,7 +39,7 @@ typedef enum lightstate
     LS_yellowArrow,
     LS_yellow,
     LS_red,
-    LS_numStates
+    LS_off
 } lightState_t;
 
 typedef enum lightdisplaytype
@@ -70,8 +71,7 @@ typedef struct lightset
 } lightSet_t;
 
 
-void SET_init(void);
-void SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime);
+error_t SET_assignLights(lightSet_t* set1, lightSet_t* set2, uint64_t startTime);
 void SET_turnAllOff(void);
 lightSetState_t SET_stateMachine(uint64_t millis);
 
