@@ -7,7 +7,6 @@
  ****************************************************************************************/
 #include "test_main.h"
 #include "test_lightSet.h"
-#include "intersection.h"
 #include "config.h"
 #include "lightSet.h"
 
@@ -78,7 +77,7 @@ static void test_SET_stateMachine(void **state)
     (void)state;
     
     //setup system config
-    INT_init(TEST_CFG1_PATH);
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success);
     
     //clocking of both state machines
     assert_int_equal(SET_assignLights(&lightConfigs[ID_north], &lightConfigs[ID_south], 0), ERR_success);
@@ -119,7 +118,7 @@ static void test_clockLightSetStateMachine(void **state)
     (void)state;
     
     //setup system config
-    INT_init(TEST_CFG1_PATH);
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success);
     assert_int_equal(SET_assignLights(&lightConfigs[ID_north], &lightConfigs[ID_south], 0), ERR_success);
     lightSet1->currentStep = 0;
     lightSet2->currentStep = 0;
@@ -159,7 +158,7 @@ static void test_incrementLightSetStep(void **state)
     (void)state;
     
     //setup system config
-    INT_init(TEST_CFG1_PATH);
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success);
     assert_int_equal(SET_assignLights(&lightConfigs[ID_north], &lightConfigs[ID_south], 0), ERR_success);
     lightSet1->currentStep = MAX_STEPS_IN_PATTERN - 1;
     lightSet2->currentStep = 0;

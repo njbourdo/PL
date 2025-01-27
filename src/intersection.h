@@ -25,7 +25,7 @@ typedef enum
 
 
 
-void INT_init(char* filepath);
+error_t INT_init(char* filepath);
 void INT_stateMachine(void);
 
 

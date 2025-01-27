@@ -24,10 +24,11 @@ STATIC error_t toggleActiveDirection(uint64_t millis);
 STATIC error_t changeActiveDirection(intState_t state, uint64_t millis);
 
 STATIC error_t (*changeActiveDirection_ptr)(intState_t, uint64_t) = changeActiveDirection;  //function ptr for mocking
+STATIC lightSet_t* (*CFG_getLightSet_ptr)(intDirection_t) = CFG_getLightSet;  //function ptr for mocking
 
-void INT_init(char* filepath)
+error_t INT_init(char* filepath)
 {
-    CFG_init(filepath);
+    return CFG_init(filepath);
 }
 
 void INT_stateMachine(void)
@@ -102,26 +103,26 @@ STATIC error_t changeActiveDirection(intState_t state, uint64_t millis)
     
     if(state == IS_ns)
     {
-        set1 = CFG_getLightSet(ID_north);
-        set2 = CFG_getLightSet(ID_south);
+        set1 = CFG_getLightSet_ptr(ID_north);
+        set2 = CFG_getLightSet_ptr(ID_south);
         //printf("North-south\n");
     }
     else if(state == IS_ew)
     {
-        set1 = CFG_getLightSet(ID_east);
-        set2 = CFG_getLightSet(ID_west);
+        set1 = CFG_getLightSet_ptr(ID_east);
+        set2 = CFG_getLightSet_ptr(ID_west);
         //printf("East-west\n");
     }
     else
     {
         //error happened, switch to error pattern to simulate hardware taking over to flash red lights
         printf("Changing to flashing red pattern!\n");
-        set1 = CFG_getLightSet(ID_north);
-        set2 = CFG_getLightSet(ID_south);
+        set1 = CFG_getLightSet_ptr(ID_north);
+        set2 = CFG_getLightSet_ptr(ID_south);
         memcpy(set1->steps, errorSteps, sizeof(errorSteps));
         memcpy(set2->steps, errorSteps, sizeof(errorSteps));
-        set1 = CFG_getLightSet(ID_east);
-        set2 = CFG_getLightSet(ID_west);
+        set1 = CFG_getLightSet_ptr(ID_east);
+        set2 = CFG_getLightSet_ptr(ID_west);
         memcpy(set1->steps, errorSteps, sizeof(errorSteps));
         memcpy(set2->steps, errorSteps, sizeof(errorSteps));
         //return ERR_success;

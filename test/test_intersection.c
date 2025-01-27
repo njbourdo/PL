@@ -14,8 +14,6 @@
 #include "config.h"
 #include "lightSet.h"
 
-#define SIZE_STEP_ARRAY         (sizeof(lightSetStep_t) * MAX_STEPS_IN_PATTERN)
-
 //from lightSet.c
 extern lightSet_t* lightSet1;
 extern lightSet_t* lightSet2;
@@ -30,6 +28,7 @@ extern uint8_t printedSetSteps[];
 extern intState_t intState;
 extern const lightSetStep_t errorSteps[];
 extern error_t (*changeActiveDirection_ptr)(intState_t, uint64_t);
+extern lightSet_t* (*CFG_getLightSet_ptr)(intDirection_t);
 extern uint64_t getMillis(void);
 extern error_t toggleActiveDirection(uint64_t millis);
 extern error_t changeActiveDirection(intState_t state, uint64_t millis);
@@ -46,6 +45,12 @@ error_t MOCK_changeActiveDirection(intState_t state, uint64_t millis)
     (void)millis;
     
     return ERR_other;
+}
+
+lightSet_t* MOCK_CFG_getLightSet(intDirection_t dir)
+{
+    (void)dir;
+    return (lightSet_t*)mock();
 }
 
 int test_intersection(void)
@@ -66,7 +71,7 @@ static void test_INT_init(void **state)
     (void)state;
     
     //ensure expected config was received
-    INT_init(TEST_CFG1_PATH);
+    assert_int_equal(INT_init(TEST_CFG1_PATH), ERR_success);
     assert_int_equal(lightConfigs[ID_east].steps[4].expirationOffset, 7777);
     assert_int_equal(lightConfigs[ID_west].steps[4].expirationOffset, 7890);
 }
@@ -76,7 +81,7 @@ static void test_INT_stateMachine(void **state)
     (void)state;
     
     //initialize system with the appropriate test configuration
-    CFG_init(TEST_CFG1_PATH);
+    assert_int_equal(INT_init(TEST_CFG1_PATH), ERR_success);
     
     //switch from off to ns
     intState = IS_off;
@@ -124,7 +129,7 @@ static void test_INT_stateMachine(void **state)
     assert_memory_equal(lightConfigs[ID_north].steps, &errorSteps, SIZE_STEP_ARRAY);
     
     //reset configs
-    CFG_init(TEST_CFG1_PATH);
+    assert_int_equal(INT_init(TEST_CFG1_PATH), ERR_success);
     
     //check default case error check
     assert_int_equal(intState, IS_ew);
@@ -187,7 +192,7 @@ static void test_changeActiveDirection(void **state)
     (void)state;
     
     //initialize system with the appropriate test configuration
-    CFG_init(TEST_CFG1_PATH);
+    assert_int_equal(INT_init(TEST_CFG1_PATH), ERR_success);
     
     //state validity check
     intState = IS_ns;
@@ -242,6 +247,16 @@ static void test_changeActiveDirection(void **state)
     assert_memory_equal(lightConfigs[ID_south].steps, &errorSteps, SIZE_STEP_ARRAY);
     assert_memory_equal(lightConfigs[ID_east].steps, &errorSteps, SIZE_STEP_ARRAY);
     assert_memory_equal(lightConfigs[ID_west].steps, &errorSteps, SIZE_STEP_ARRAY);
+    
+    //fail to assign lights
+    CFG_getLightSet_ptr = MOCK_CFG_getLightSet;
+    intState = IS_ns;
+    lightSet1 = NULL;
+    lightSet2 = NULL;
+    will_return(MOCK_CFG_getLightSet, NULL);
+    will_return(MOCK_CFG_getLightSet, NULL);
+    assert_int_equal(changeActiveDirection(IS_ew, 1), ERR_nullPtr);
+    CFG_getLightSet_ptr = CFG_getLightSet;
     
 }
 
