@@ -27,6 +27,7 @@ typedef enum error
     ERR_format,
     ERR_json,
     ERR_value,
+    ERR_mem,
     ERR_other
 } error_t;
 

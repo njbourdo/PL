@@ -1,371 +1,322 @@
 /***************************************************************************************
- * @file    config.c
- * @date    January 20th 2025
+ * @file    test_config.c
+ * @date    January 25th 2025
  *
  * @brief   
  *
  ****************************************************************************************/
-/*
-#include <strings.h>
 #include <stdlib.h>
 
-#include "main.h"
+#include "test_main.h"
+#include "test_config.h"
+//#include "intersection.h"
 #include "config.h"
+#include "lightSet.h"
 #include "cJSON/cJSON.h"
 
+//from lightSet.c
+//extern lightSet_t* lightSet1;
+//extern lightSet_t* lightSet2;
 
-static lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
 
-error_t parseConfig(const char* json);
-error_t parseDirection(const cJSON* direction);
-error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
-error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps);
-intDirection_t getDirectionIdxFromString(char* dir);
-lightDisplayType_t getLightTypeFromString(char* type);
-lightSetState_t getStepStateFromString(char* state);
- 
-void CFG_init(char* filepath)
+
+//from display.c
+//extern uint8_t printedSetSteps[];
+
+//from intersection.c
+//extern intState_t intState;
+
+//from config.c
+extern lightSet_t lightConfigs[];
+extern error_t parseConfig(const char* json);
+extern error_t parseDirection(const cJSON* direction);
+extern error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
+extern error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps);
+extern intDirection_t getDirectionIdxFromString(char* dir);
+extern lightDisplayType_t getLightTypeFromString(char* type);
+extern lightSetState_t getStepStateFromString(char* state);
+extern void* (*malloc_ptr)(size_t);  //function ptr for mocking
+extern size_t (*fread_ptr)(void*, size_t, size_t, FILE*);  //function ptr for mocking
+
+static size_t rcvdFileSize = 0;
+static size_t rcvdMemSize = 0;
+
+static void test_CFG_init(void **state);
+static void test_CFG_loadDefaults(void **state);
+static void test_CFG_getLightSet(void **state);
+static void test_parseConfig(void **state);
+static void test_parseDirection(void **state);
+static void test_parseLights(void **state);
+static void test_parseSteps(void **state);
+static void test_getDirectionIdxFromString(void **state);
+static void test_getLightTypeFromString(void **state);
+static void test_getStepStateFromString(void **state);
+
+static void* MOCK_malloc(size_t size)
 {
-    FILE* file;
-    long fileSize;
-    char* json;
-    size_t readBytes;
-    
-    //open file
-    file = fopen(filepath, "r");
-    if(!file)
-    {
-        printf("Failed to open file, using default values\n");
-        return;
-    }
-
-    //determine file size
-    fseek(file, 0, SEEK_END);
-    fileSize = ftell(file);
-    rewind(file);
-
-    //malloc space for file contents
-    json = (char *)malloc(fileSize + 1);  // +1 for null terminator
-    if(!json)
-    {
-        printf("Failed to allocate memory for JSON content, using default values\n");
-        fclose(file);
-        return;
-    }
-
-    //read and null terminate the resulting string, just in case
-    readBytes = fread(json, 1, fileSize, file);
-    if((long)readBytes != fileSize)
-    {
-        printf("Failed to read all bytes from file (%lu of %li), using default values\n", readBytes, fileSize);
-        fclose(file);
-        free(json);
-        return;
-    }
-    json[fileSize] = '\0';
-
-    fclose(file);
-    
-    if(parseConfig(json) != ERR_success)
-    {
-        printf("Failed to load config, using default values\n");
-        CFG_loadDefaults();
-    }
-    
-    free(json);
+    rcvdFileSize = size;
+    //printf("%lu\n", size);
+    return NULL;
 }
 
-void CFG_loadDefaults(void)
+static size_t MOCK_fread(void* ptr, size_t size, size_t count, FILE* stream)
 {
+    (void)ptr;
+    (void)size;
+    rcvdMemSize = count;
+    (void)stream;
+    return 0;
+}
+
+int test_config(void)
+{
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_CFG_init),
+        cmocka_unit_test(test_CFG_loadDefaults),
+        cmocka_unit_test(test_CFG_getLightSet),
+        cmocka_unit_test(test_parseConfig),
+        cmocka_unit_test(test_parseDirection),
+        cmocka_unit_test(test_parseLights),
+        cmocka_unit_test(test_parseSteps),
+        cmocka_unit_test(test_getDirectionIdxFromString),
+        cmocka_unit_test(test_getLightTypeFromString),
+        cmocka_unit_test(test_getStepStateFromString),
+    };
+
+    return cmocka_run_group_tests(tests, NULL, NULL);
+}
+
+
+ 
+//error_t CFG_init(char* filepath)
+static void test_CFG_init(void **state)
+{
+    (void)state;
+    
+    //invalid file path
+    assert_int_equal(CFG_init(TEST_CFG1_PATH TEST_CFG1_PATH), ERR_file);
+    
+    //mock malloc failure and confirm correct file size
+    malloc_ptr = MOCK_malloc;
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_mem);
+    assert_int_equal(rcvdFileSize, TEST_CFG1_SIZE+1);
+    malloc_ptr = malloc;
+    
+    //mock fread failure and confirm correct memory size was allocated
+    fread_ptr = MOCK_fread;
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_other);
+    assert_int_equal(rcvdMemSize, TEST_CFG1_SIZE);
+    fread_ptr = fread;
+    
+    //parse config failure
+    assert_int_equal(CFG_init(TEST_CFG_INV1_PATH), ERR_format); //invalid JSON object (incorrectly spelled "intersection" key)
+    
+    //successful init
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success);
+}
+
+//void CFG_loadDefaults(void)
+static void test_CFG_loadDefaults(void **state)
+{
+    (void)state;
+    
     lightSet_t defaultConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
     
-    for(uint8_t i = 0; i < INT_DIRECTIONS; i++)
+    //test update to default config
+    assert_int_equal(CFG_init(TEST_CFG2_PATH), ERR_success);    
+    //confirm no light or step arrays match
+    for(intDirection_t dir = 0; dir < ID_numDirections; dir++)
     {
-        lightConfigs[i] = defaultConfigs[i];
+        assert_memory_not_equal(&lightConfigs[dir].lights, &defaultConfigs[dir].lights, SIZE_LIGHT_ARRAY);
+        assert_memory_not_equal(&lightConfigs[dir].steps, &defaultConfigs[dir].steps, SIZE_STEP_ARRAY);
     }
+    //load defaults
+    CFG_loadDefaults();
+    //confirm all light and step arrays match
+    for(intDirection_t dir = 0; dir < ID_numDirections; dir++)
+    {
+        assert_memory_equal(&lightConfigs[dir].lights, &defaultConfigs[dir].lights, SIZE_LIGHT_ARRAY);
+        assert_memory_equal(&lightConfigs[dir].steps, &defaultConfigs[dir].steps, SIZE_STEP_ARRAY);
+    }
+    
 }
 
-lightSet_t* CFG_getLightSet(intDirection_t direction)
+//lightSet_t* CFG_getLightSet(intDirection_t direction)
+static void test_CFG_getLightSet(void **state)
 {
-    if(direction > ID_west)
+    (void)state;
+    
+    //valid directions
+    for(intDirection_t dir = 0; dir < ID_numDirections; dir++)
     {
-        return NULL;
+        assert_ptr_equal(CFG_getLightSet(dir), &lightConfigs[dir]);
     }
     
-    return &lightConfigs[direction];
+    //invalid direction
+    assert_ptr_equal(CFG_getLightSet(ID_numDirections), NULL);
 }
 
-error_t parseConfig(const char* json)
+//error_t parseConfig(const char* json)
+static void test_parseConfig(void **state)
 {
-    error_t result = ERR_success;
-    cJSON* root;
-    const cJSON* intersection = NULL;
-    const cJSON* direction = NULL;
+    (void)state;
     
-    //convert JSON string to cJSON object
-    root = cJSON_Parse(json);
-    if (!root) 
-    {
-        printf("Failed to parse JSON config: %s\n", cJSON_GetErrorPtr());
-        return ERR_json;
-    }
+    //invalid JSON format
+    assert_int_equal(CFG_init(TEST_CFG_INV2_PATH), ERR_json);
     
-    //get intersection object
-    intersection = cJSON_GetObjectItem(root, "intersection");
+    //invalid intersection object
+    assert_int_equal(CFG_init(TEST_CFG_INV1_PATH), ERR_format); //invalid JSON object (incorrectly spelled "intersection" key)
     
-    //for each direction in intersection...
-    cJSON_ArrayForEach(direction, intersection)
-    {
-        result = parseDirection(direction);
-        if(result != ERR_success)
-        {
-            break;
-        }
-    }
+    //no directions in config
+    assert_int_equal(CFG_init(TEST_CFG_INV5_PATH), ERR_format);
     
-    //free memory for cJSON object
-    cJSON_Delete(root);
+    //one bad direction
+    assert_int_equal(CFG_init(TEST_CFG_INV6_PATH), ERR_format);
     
-    return result;
+    //only one direction per NS/EW
+    assert_int_equal(CFG_init(TEST_CFG3_PATH), ERR_success);
+    
+    //four valid directions
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success);
 }
 
-error_t parseDirection(const cJSON* direction)
+//error_t parseDirection(const cJSON* direction)
+static void test_parseDirection(void **state)
 {
-    const cJSON* lights = NULL;
-    const cJSON* steps = NULL;
-    const cJSON* value = NULL;
-    intDirection_t directionIdx;
-    error_t result = ERR_success;
+    (void)state;
     
-    //get direction
-    value = cJSON_GetObjectItem(direction, "direction");
-    if(!cJSON_IsString(value))
-    {
-        printf("Direction value not a string!\n");
-        return ERR_format;
-    }
-    directionIdx = getDirectionIdxFromString(value->valuestring);
-    if(directionIdx >= ID_numDirections)
-    {
-        printf("Invalid direction string: %s\n", value->valuestring);
-        return ERR_format;
-    }
-    printf("\n%s\n", value->valuestring);
+    //direction not a string (does not exist)
+    assert_int_equal(CFG_init(TEST_CFG_INV5_PATH), ERR_format);
     
-    //get lights array
-    lights = cJSON_GetObjectItem(direction, "lights");
+    //invalid direction string
+    assert_int_equal(CFG_init(TEST_CFG_INV6_PATH), ERR_format); //spelled wring
+    assert_int_equal(CFG_init(TEST_CFG_INV3_PATH), ERR_format); //number
     
-    //parse lights
-    result = parseLights(&lightConfigs[directionIdx], lights);
-    if(result != ERR_success)
-    {
-        return result;
-    }
+    //invalid lights array
+    assert_int_equal(CFG_init(TEST_CFG_INV4_PATH), ERR_format);
     
-    //get steps array
-    steps = cJSON_GetObjectItem(direction, "steps");
+    //failed to parse lights
+    assert_int_equal(CFG_init(TEST_CFG_INV7_PATH), ERR_format);
     
-    //parse steps
-    result = parseLights(&lightConfigs[directionIdx], steps);
-    if(result != ERR_success)
-    {
-        return result;
-    }
+    //invalid steps array
+    assert_int_equal(CFG_init(TEST_CFG_INV8_PATH), ERR_format);
     
-    return result;
+    //failed to parse steps
+    assert_int_equal(CFG_init(TEST_CFG_INV9_PATH), ERR_format);
+    
+    //success
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success);
 }
 
-error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
+//error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
+static void test_parseLights(void **state)
 {
-    const cJSON* light = NULL;
-    uint8_t lightIdx;
-    lightDisplayType_t lightType;
+    (void)state;
     
-    //for each light...
-    lightIdx = 0;
-    cJSON_ArrayForEach(light, lights)
-    {
-        if(lightIdx >= MAX_LIGHTS_IN_SET)
-        {
-            printf("Logic only supports %u lights per set\n", MAX_LIGHTS_IN_SET);
-            return ERR_format;
-        }
-        if(!cJSON_IsString(light))
-        {
-            printf("Light type value not a string!\n");
-            return ERR_format;
-        }
-        
-        lightType = getLightTypeFromString(light->valuestring);
-        lightConfig->lights[lightIdx].type = lightType;
-        lightConfig->lights[lightIdx].state = LS_red;
-        
-        lightIdx++;
-    }
+    //too many lights
+    assert_int_equal(CFG_init(TEST_CFG_INV10_PATH), ERR_format);    //6 lights
     
-    return ERR_success;
+    //invalid light string
+    assert_int_equal(CFG_init(TEST_CFG_INV7_PATH), ERR_format); //second light is 2 instead of "<" or "o"
+    
+    //valid light arrays
+    assert_int_equal(CFG_init(TEST_CFG1_PATH), ERR_success); //2, 3, 4, and 5 lights
 }
 
-error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
+//error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
+static void test_parseSteps(void **state)
 {
-    const cJSON* step = NULL;
-    const cJSON* value = NULL;
-    uint8_t stepIdx;
-    lightSetState_t stepState;
-    uint64_t lastTime;
+    (void)state;
     
-    //for each step...
-    stepIdx = 0;
-    lastTime = 0;
-    cJSON_ArrayForEach(step, steps)
-    {
-        if(stepIdx >= MAX_STEPS_IN_PATTERN)
-        {
-            printf("Logic only supports %u steps per pattern\n", MAX_STEPS_IN_PATTERN);
-            return ERR_format;
-        }
-        
-        //get and validate state
-        value = cJSON_GetObjectItem(step, "state");
-        if(!cJSON_IsString(value))
-        {
-            printf("Step state value not a string!\n");
-            return ERR_format;
-        }
-        stepState = getStepStateFromString(value->valuestring);
-        if(stepState >= LSS_unused)
-        {
-            printf("Invalid step state string: %s\n", value->valuestring);
-            return ERR_format;
-        }
-        printf("%s\n", value->valuestring);
-        
-        //get and validate time
-        value = cJSON_GetObjectItem(step, "time");
-        if(!cJSON_IsNumber(value))
-        {
-            printf("Step time value not a number!\n");
-            return ERR_format;
-        }
-        
-        //assign step state and time values
-        lightConfig->steps[stepIdx].state = stepState;
-        
-        //users enter state start times but config expects state end times, so set first to 0, last to never expire, and the rest to the time of the previous step
-        if(stepIdx == 0)    //first step
-        {
-            lightConfig->steps[stepIdx].expirationOffset = 0;
-        }
-        else if(stepState == LSS_off) //last step
-        {
-            lightConfigs->steps[stepIdx - 1].expirationOffset = (uint64_t)value->valueint;
-            lightConfigs->steps[stepIdx].expirationOffset = (uint64_t)-1;
-        }
-        else    //every step in between
-        {
-            lightConfig->steps[stepIdx - 1].expirationOffset = lastTime;
-        }
-        
-        lastTime = (uint64_t)value->valueint;
-        
-        stepIdx++;
-    }
+    //too many steps
+    assert_int_equal(CFG_init(TEST_CFG_INV11_PATH), ERR_format);    //11 steps
     
-    return ERR_success;
+    //invalid step state string
+    assert_int_equal(CFG_init(TEST_CFG_INV12_PATH), ERR_format);    //"State1" instead of "State" or "state"
+    
+    //invalid step state value type
+    assert_int_equal(CFG_init(TEST_CFG_INV9_PATH), ERR_format);     //2 instead of "LxSx", "end", or "disable"
+    
+    //invalid step state string
+    assert_int_equal(CFG_init(TEST_CFG_INV14_PATH), ERR_format);     //"badString"
+    
+    //invalid time value
+    assert_int_equal(CFG_init(TEST_CFG_INV13_PATH), ERR_format);    //"0" instead of 0
+    
+    //correct time value parsing
+    assert_int_equal(CFG_init(TEST_CFG3_PATH), ERR_success);
+    assert_int_equal(lightConfigs[ID_north].steps[0].expirationOffset, 2000);
+    assert_int_equal(lightConfigs[ID_north].steps[1].expirationOffset, 3000);
+    assert_int_equal(lightConfigs[ID_north].steps[2].expirationOffset, 4000);
+    assert_int_equal(lightConfigs[ID_north].steps[3].expirationOffset, (uint64_t)-1);
 }
 
-intDirection_t getDirectionIdxFromString(char* dir)
+//intDirection_t getDirectionIdxFromString(char* dir)
+static void test_getDirectionIdxFromString(void **state)
 {
-    if(strcasecmp(CFG_DIR_STR_NORTH, dir))
-    {
-        return ID_north;
-    }
-    else if(strcasecmp(CFG_DIR_STR_EAST, dir))
-    {
-        return ID_east;
-    }
-    else if(strcasecmp(CFG_DIR_STR_SOUTH, dir))
-    {
-        return ID_south;
-    }
-    else if(strcasecmp(CFG_DIR_STR_WEST, dir))
-    {
-        return ID_west;
-    }
-    return ID_numDirections;
-}
-
-lightDisplayType_t getLightTypeFromString(char* type)
-{
-    switch(type[0])
-    {
-        case CFG_LIGHT_TYPE_SOLID1:
-        case CFG_LIGHT_TYPE_SOLID2:
-        case CFG_LIGHT_TYPE_SOLID3:
-            return LDT_solid;
-        case CFG_LIGHT_TYPE_ARROW:
-            return LDT_arrow;
-        default:
-            break;
-    }
+    (void)state;
     
-    return LDT_unused;
+    //successes
+    assert_int_equal(getDirectionIdxFromString("north"), ID_north);
+    assert_int_equal(getDirectionIdxFromString("NORTH"), ID_north);
+    assert_int_equal(getDirectionIdxFromString("south"), ID_south);
+    assert_int_equal(getDirectionIdxFromString("SOUTH"), ID_south);
+    assert_int_equal(getDirectionIdxFromString("east"), ID_east);
+    assert_int_equal(getDirectionIdxFromString("EAST"), ID_east);
+    assert_int_equal(getDirectionIdxFromString("west"), ID_west);
+    assert_int_equal(getDirectionIdxFromString("WEST"), ID_west);
+    
+    //fails
+    assert_int_equal(getDirectionIdxFromString("TEST"), ID_numDirections);
+    assert_int_equal(getDirectionIdxFromString("north "), ID_numDirections);
+    assert_int_equal(getDirectionIdxFromString(" east"), ID_numDirections);
+    assert_int_equal(getDirectionIdxFromString("0"), ID_numDirections);
 }
 
-lightSetState_t getStepStateFromString(char* state)
+//lightDisplayType_t getLightTypeFromString(char* type)
+static void test_getLightTypeFromString(void **state)
 {
-    if(strcasecmp(CFG_STEP_STATE_LPSG, state))
-    {
-        return LSS_LPSG;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LPSY, state))
-    {
-        return LSS_LPSY;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LPSR, state))
-    {
-        return LSS_LPSR;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LUSG, state))
-    {
-        return LSS_LUSG;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LUSY, state))
-    {
-        return LSS_LUSY;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LUSR, state))
-    {
-        return LSS_LUSR;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LYSG, state))
-    {
-        return LSS_LYSG;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LYSY, state))
-    {
-        return LSS_LYSY;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LYSR, state))
-    {
-        return LSS_LYSR;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LRSG, state))
-    {
-        return LSS_LRSG;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LRSY, state))
-    {
-        return LSS_LRSY;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_LRSR, state))
-    {
-        return LSS_LRSR;
-    }
-    else if(strcasecmp(CFG_STEP_STATE_off, state))
-    {
-        return LSS_off;
-    }
-    return LSS_unused;
-}*/
+    (void)state;
+    
+    //successes
+    assert_int_equal(getLightTypeFromString("o"), LDT_solid);
+    assert_int_equal(getLightTypeFromString("O"), LDT_solid);
+    assert_int_equal(getLightTypeFromString("0"), LDT_solid);
+    assert_int_equal(getLightTypeFromString("<"), LDT_arrow);
+    
+    //fails
+    assert_int_equal(getLightTypeFromString(">"), LDT_unused);
+    assert_int_equal(getLightTypeFromString(" <"), LDT_unused);
+    assert_int_equal(getLightTypeFromString("1o"), LDT_unused);
+    assert_int_equal(getLightTypeFromString("c"), LDT_unused);
+}
+
+//lightSetState_t getStepStateFromString(char* state)
+static void test_getStepStateFromString(void **state)
+{
+    (void)state;
+    
+    //successes
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LPSG), LSS_LPSG);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LPSY), LSS_LPSY);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LPSR), LSS_LPSR);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LUSG), LSS_LUSG);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LUSY), LSS_LUSY);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LUSR), LSS_LUSR);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LYSG), LSS_LYSG);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LYSY), LSS_LYSY);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LYSR), LSS_LYSR);
+    assert_int_equal(getStepStateFromString("lysr"), LSS_LYSR);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LRSG), LSS_LRSG);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LRSY), LSS_LRSY);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_LRSR), LSS_LRSR);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_END), LSS_end);
+    assert_int_equal(getStepStateFromString("END"), LSS_end);
+    assert_int_equal(getStepStateFromString(CFG_STEP_STATE_DISABLE), LSS_disable);
+    
+    //fails
+    assert_int_equal(getStepStateFromString("0"), LSS_unused);
+    assert_int_equal(getStepStateFromString("END "), LSS_unused);
+    assert_int_equal(getStepStateFromString(" END"), LSS_unused);
+}
 

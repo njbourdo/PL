@@ -16,27 +16,31 @@
 
 STATIC lightSet_t lightConfigs[INT_DIRECTIONS] = DEFAULT_CONFIG;
 
-error_t parseConfig(const char* json);
-error_t parseDirection(const cJSON* direction);
-error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
-error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps);
-intDirection_t getDirectionIdxFromString(char* dir);
-lightDisplayType_t getLightTypeFromString(char* type);
-lightSetState_t getStepStateFromString(char* state);
+STATIC error_t parseConfig(const char* json);
+STATIC error_t parseDirection(const cJSON* direction);
+STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights);
+STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps);
+STATIC intDirection_t getDirectionIdxFromString(char* dir);
+STATIC lightDisplayType_t getLightTypeFromString(char* type);
+STATIC lightSetState_t getStepStateFromString(char* state);
+
+STATIC void* (*malloc_ptr)(size_t) = malloc;  //function ptr for mocking
+STATIC size_t (*fread_ptr)(void*, size_t, size_t, FILE*) = fread;  //function ptr for mocking
  
-void CFG_init(char* filepath)
+error_t CFG_init(char* filepath)
 {
     FILE* file;
     long fileSize;
     char* json;
     size_t readBytes;
+    error_t result;
     
     //open file
     file = fopen(filepath, "r");
     if(!file)
     {
         printf("Failed to open file, using default values\n");
-        return;
+        return ERR_file;
     }
 
     //determine file size
@@ -45,34 +49,37 @@ void CFG_init(char* filepath)
     rewind(file);
 
     //malloc space for file contents
-    json = (char *)malloc(fileSize + 1);  // +1 for null terminator
+    json = (char *)malloc_ptr(fileSize + 1);  // +1 for null terminator
     if(!json)
     {
         printf("Failed to allocate memory for JSON content, using default values\n");
         fclose(file);
-        return;
+        return ERR_mem;
     }
 
     //read and null terminate the resulting string, just in case
-    readBytes = fread(json, 1, fileSize, file);
+    readBytes = fread_ptr(json, 1, fileSize, file);
     if((long)readBytes != fileSize)
     {
         printf("Failed to read all bytes from file (%lu of %li), using default values\n", readBytes, fileSize);
         fclose(file);
         free(json);
-        return;
+        return ERR_other;
     }
     json[fileSize] = '\0';
 
     fclose(file);
     
-    if(parseConfig(json) != ERR_success)
+    result = parseConfig(json);
+    if(result != ERR_success)
     {
         printf("Failed to load config, using default values\n");
         CFG_loadDefaults();
     }
     
     free(json);
+    
+    return result;
 }
 
 void CFG_loadDefaults(void)
@@ -87,7 +94,7 @@ void CFG_loadDefaults(void)
 
 lightSet_t* CFG_getLightSet(intDirection_t direction)
 {
-    if(direction > ID_west)
+    if(direction >= ID_numDirections)
     {
         return NULL;
     }
@@ -95,7 +102,7 @@ lightSet_t* CFG_getLightSet(intDirection_t direction)
     return &lightConfigs[direction];
 }
 
-error_t parseConfig(const char* json)
+STATIC error_t parseConfig(const char* json)
 {
     error_t result = ERR_success;
     cJSON* root;
@@ -113,6 +120,12 @@ error_t parseConfig(const char* json)
     //get intersection object
     intersection = cJSON_GetObjectItem(root, "intersection");
     
+    if(!cJSON_IsArray(intersection))
+    {
+        printf("Failed to extract intersection array object!\n");
+        return ERR_format;
+    }
+    
     //for each direction in intersection...
     cJSON_ArrayForEach(direction, intersection)
     {
@@ -129,7 +142,7 @@ error_t parseConfig(const char* json)
     return result;
 }
 
-error_t parseDirection(const cJSON* direction)
+STATIC error_t parseDirection(const cJSON* direction)
 {
     const cJSON* lights = NULL;
     const cJSON* steps = NULL;
@@ -154,6 +167,11 @@ error_t parseDirection(const cJSON* direction)
     
     //get lights array
     lights = cJSON_GetObjectItem(direction, "lights");
+    if(!cJSON_IsArray(lights))
+    {
+        printf("Invalid light config array\n");
+        return ERR_format;
+    }
     
     //parse lights
     result = parseLights(&lightConfigs[directionIdx], lights);
@@ -164,6 +182,11 @@ error_t parseDirection(const cJSON* direction)
     
     //get steps array
     steps = cJSON_GetObjectItem(direction, "steps");
+    if(!cJSON_IsArray(steps))
+    {
+        printf("Invalid step config array\n");
+        return ERR_format;
+    }
     
     //parse steps
     result = parseSteps(&lightConfigs[directionIdx], steps);
@@ -175,7 +198,7 @@ error_t parseDirection(const cJSON* direction)
     return result;
 }
 
-error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
+STATIC error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
 {
     const cJSON* light = NULL;
     uint8_t lightIdx;
@@ -206,7 +229,7 @@ error_t parseLights(lightSet_t* lightConfig, const cJSON* lights)
     return ERR_success;
 }
 
-error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
+STATIC error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
 {
     const cJSON* step = NULL;
     const cJSON* value = NULL;
@@ -271,7 +294,7 @@ error_t parseSteps(lightSet_t* lightConfig, const cJSON* steps)
     return ERR_success;
 }
 
-intDirection_t getDirectionIdxFromString(char* dir)
+STATIC intDirection_t getDirectionIdxFromString(char* dir)
 {
     if(!strcasecmp(CFG_DIR_STR_NORTH, dir))
     {
@@ -292,7 +315,7 @@ intDirection_t getDirectionIdxFromString(char* dir)
     return ID_numDirections;
 }
 
-lightDisplayType_t getLightTypeFromString(char* type)
+STATIC lightDisplayType_t getLightTypeFromString(char* type)
 {
     switch(type[0])
     {
@@ -309,7 +332,7 @@ lightDisplayType_t getLightTypeFromString(char* type)
     return LDT_unused;
 }
 
-lightSetState_t getStepStateFromString(char* state)
+STATIC lightSetState_t getStepStateFromString(char* state)
 {
     if(!strcasecmp(CFG_STEP_STATE_LPSG, state))
     {

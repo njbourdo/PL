@@ -100,7 +100,7 @@ void printNorthOrSouthLights(lightSet_t* set)
                     cstr = lightColors[LS_off];
                 }
                 
-                lstr = lightStrings[LDT_solid];
+                lstr = lightStrings[set->lights[i].type];
             }
             else if(j == 1) //yellow light
             {
@@ -113,7 +113,7 @@ void printNorthOrSouthLights(lightSet_t* set)
                     cstr = lightColors[LS_off];
                 }
                 
-                lstr = lightStrings[LDT_solid];
+                lstr = lightStrings[set->lights[i].type];
             }
             else if(j == 2) //green/arrow light
             {

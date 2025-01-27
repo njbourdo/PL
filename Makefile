@@ -34,6 +34,7 @@ TEST_BINARY := $(BINARY)_test_runner
 MAIN_FILES := $(SRCDIR)/main.*
 LIB_FILES := $(wildcard $(LIBDIR)/*/*.c)
 APP_FILES := $(filter-out $(SRCDIR)/main.c, $(wildcard $(SRCDIR)/*.c))
+GCOV_FILES := $(filter-out $(SRCDIR)/main.c $(SRCDIR)/display.c, $(wildcard $(SRCDIR)/*.c))
 TEST_FILES := $(wildcard $(TESTDIR)/*.c)
 
 ### Make Options ###
@@ -61,7 +62,7 @@ tests: clean
 	./$(BINDIR)/$(TEST_BINARY)
 	#gcov -o $(BINDIR) $(SRCDIR)/*.c
 	#gcov -o $(BINDIR) $(addprefix $(SRCDIR)/, $(notdir $(basename $(APP_FILES))))
-	gcov -o $(BINDIR) $(addprefix $(BINDIR)/$(notdir $(TEST_BINARY))-,$(notdir $(APP_FILES)))
+	gcov -o $(BINDIR) $(addprefix $(BINDIR)/$(notdir $(TEST_BINARY))-,$(notdir $(GCOV_FILES)))
 	@mv *.gcov $(BINDIR)/
 
 clean:

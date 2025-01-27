@@ -79,7 +79,7 @@ typedef enum
 } intDirection_t;
 
 
-void CFG_init(char* filepath);
+error_t CFG_init(char* filepath);
 void CFG_loadDefaults(void);
 lightSet_t* CFG_getLightSet(intDirection_t direction);
 

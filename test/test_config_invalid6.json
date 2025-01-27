@@ -1,0 +1,92 @@
+{
+    "Intersection" : [
+        {
+            "Direction" : "north",
+            "Lights" : [ "<" , "o", "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LUSG",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 3000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 4000
+                }
+            ]
+        },
+        {
+            "Direction" : "sooth",
+            "Lights" : [ "<" , "o" , "o"],
+            "Steps": [ 
+                {
+                    "State" : "LUSG",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 3000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 4000
+                }
+            ]
+        },
+        {
+            "Direction" : "east",
+            "Lights" : [ "o", "o"],
+            "Steps": [ 
+                {
+                    "State" : "LUSG",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 3000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 4000
+                }
+            ]
+        },
+        {
+            "Direction" : "west",
+            "Lights" : [ "o" , "o"],
+            "Steps": [ 
+                {
+                    "State" : "LUSG",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 3000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 4000
+                }
+            ]
+        }
+    ]
+}

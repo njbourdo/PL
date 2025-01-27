@@ -1,0 +1,26 @@
+{
+    "Intersection" : [
+        {
+            "Direction" : 0,
+            "Lights" : [ "<" , "o", "o" ],
+            "Steps": [ 
+                {
+                    "State" : "LUSG",
+                    "Time" : 0
+                },
+                {
+                    "State" : "LYSY",
+                    "Time" : 2000
+                },
+                {
+                    "State" : "LRSR",
+                    "Time" : 3000
+                },
+                {
+                    "State" : "end",
+                    "Time" : 4000
+                }
+            ]
+        }
+    ]
+}

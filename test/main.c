@@ -9,9 +9,7 @@
 #include "test_main.h"
 #include "test_intersection.h"
 #include "test_lightSet.h"
-//#include "config.h"
-//#include "lightSet.h"
-//#include "display.h"
+#include "test_config.h"
 
 /*****************************************************************************
  ** @brief dummy test
@@ -49,6 +47,7 @@ int main(void)
     
     result += test_intersection();
     result += test_lightSet();
+    result += test_config();
     
     return result;
 }
